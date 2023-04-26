@@ -1,3 +1,4 @@
+#include <curses.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,10 +31,12 @@ void do_movement_action(STATE *st, int dx, int dy) {
 	st->playerY += dy;
 }
 
+void drawplayer();
+
 void update(STATE *st) {
 	int key = getch();
 
-	mvaddch(st->playerX, st->playerY, ' ');
+	mvaddch(st->playerX, st->playerY, '.');
 	switch(key) {
 		case KEY_A1:
 		case '7': do_movement_action(st, -1, -1); break;
@@ -86,23 +89,26 @@ int main() {
 	 * deveria existir uma função chamada draw_light!
 	 *
 	 */
+
+	//drawplayer;
+
 	while(1) {
 		move(nrows - 1, 0);
 		attron(COLOR_PAIR(COLOR_BLUE));
 		printw("(%d, %d) %d %d", st.playerX, st.playerY, ncols, nrows);
 		attroff(COLOR_PAIR(COLOR_BLUE));
-		attron(COLOR_PAIR(COLOR_WHITE));
-		mvaddch(st.playerX, st.playerY, '@' | A_BOLD);
-		attroff(COLOR_PAIR(COLOR_WHITE));
 		attron(COLOR_PAIR(COLOR_YELLOW));
-		mvaddch(st.playerX - 1, st.playerY - 1, '.' | A_BOLD);
-		mvaddch(st.playerX - 1, st.playerY + 0, '.' | A_BOLD);
-		mvaddch(st.playerX - 1, st.playerY + 1, '.' | A_BOLD);
-		mvaddch(st.playerX + 0, st.playerY - 1, '.' | A_BOLD);
-		mvaddch(st.playerX + 0, st.playerY + 1, '.' | A_BOLD);
-		mvaddch(st.playerX + 1, st.playerY - 1, '.' | A_BOLD);
-		mvaddch(st.playerX + 1, st.playerY + 0, '.' | A_BOLD);
-		mvaddch(st.playerX + 1, st.playerY + 1, '.' | A_BOLD);
+		mvaddch(st.playerX, st.playerY, '@' | A_BOLD);
+		attroff(COLOR_PAIR(COLOR_YELLOW));
+		attron(COLOR_PAIR(COLOR_YELLOW));
+		// mvaddch(st.playerX - 1, st.playerY - 1, '.' | A_BOLD);
+		// mvaddch(st.playerX - 1, st.playerY + 0, '.' | A_BOLD);
+		// mvaddch(st.playerX - 1, st.playerY + 1, '.' | A_BOLD);
+		// mvaddch(st.playerX + 0, st.playerY - 1, '.' | A_BOLD);
+		// mvaddch(st.playerX + 0, st.playerY + 1, '.' | A_BOLD);
+		// mvaddch(st.playerX + 1, st.playerY - 1, '.' | A_BOLD);
+		// mvaddch(st.playerX + 1, st.playerY + 0, '.' | A_BOLD);
+		// mvaddch(st.playerX + 1, st.playerY + 1, '.' | A_BOLD);
                 attroff(COLOR_PAIR(COLOR_YELLOW));
 		move(st.playerX, st.playerY);
 		update(&st);
