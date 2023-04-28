@@ -35,14 +35,14 @@ void do_movement_action(STATE *st, int dx, int dy)
 	st->playerY += dy;
 }
 
-void drawLight(STATE *st, int mapData[][70], int nrows, int ncols)
+void drawLight(STATE st, int nrows, int ncols, int mapData[][ncols])
 {
 		int i, j;
 	for (i = 0; i < nrows; i++)
 	{
 		for (j = 0; j < ncols; j++)
 		{
-			if(sqrt(pow(i - st->playerX, 2) + pow(j - st->playerY, 2)) <= 5)
+			if(sqrt(pow(i - st.playerX, 2) + pow(j - st.playerY, 2)) <= 20)
 			{
 				if(mapData[i][j] == 0)
 					mvaddch(i, j, '.');
@@ -94,7 +94,8 @@ void update(STATE *st)
 	}
 }
 
-int main() {
+int main()
+{
 	STATE st = {20,20,3};	//coordenada 20,20, começa com 3HP
 	WINDOW *wnd = initscr();
 	int ncols, nrows;
@@ -112,23 +113,17 @@ int main() {
 	keypad(stdscr, true);
 
 	init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
-        init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
-        init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
+    init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
 
-	/* 	int i, j;
-	for(i = 0; i < nrows; i++)
-	{
-		for(j = 0; j < ncols; j++)
-        	mapData[i][j] = 0;
-    } */												//isto e so teste para preencher o array
-	gerar(mapData);
+	gerar(nrows, ncols, mapData);
 
 	/**
 	 * Este código está muito mal escrito!
-	 * Deveria existir uma função chamada draw_player!
+	 * Deveria existir uma função chamada draw_player! <<<---- TEMOS DE FAZER
 	 *
 	 * Se estamos a desenhar uma luz à volta do jogador
-	 * deveria existir uma função chamada draw_light!
+	 * deveria existir uma função chamada draw_light!	<<<---- mas esta aqui ja estou a fazer
 	 *
 	 */
 
@@ -139,7 +134,7 @@ int main() {
 		attron(COLOR_PAIR(COLOR_BLUE));
 		printw("(%d, %d) %d %d", st.playerX, st.playerY, ncols, nrows); //ao tirar isto da warning de ncols e nrows nao utilizadas
 		attroff(COLOR_PAIR(COLOR_BLUE));
-		drawLight(&st, mapData, nrows, ncols);
+		drawLight(st, nrows, ncols, mapData);
 		attron(COLOR_PAIR(COLOR_YELLOW));
 		mvaddch(st.playerX, st.playerY, '@' | A_BOLD);
 		attroff(COLOR_PAIR(COLOR_YELLOW));
