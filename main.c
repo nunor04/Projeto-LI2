@@ -29,8 +29,7 @@ typedef struct state
  *
  * Um pequeno exemplo que mostra o que se pode fazer
  */
-void do_movement_action(STATE *st, int dx, int dy)
-{
+void do_movement_action(STATE *st, int dx, int dy) {
 	st->playerX += dx;
 	st->playerY += dy;
 }
