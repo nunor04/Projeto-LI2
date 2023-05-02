@@ -29,26 +29,30 @@ typedef struct state
  *
  * Um pequeno exemplo que mostra o que se pode fazer
  */
-void do_movement_action(STATE *st, int dx, int dy, int ncols,int mapData[][ncols]) {
+void do_movement_action(STATE *st, int dx, int dy, int **mapData)
+{
 
     int novo_x = st->playerX + dx;
     int novo_y = st->playerY + dy;
 
-    if (novo_x < 0 || novo_y < 0 ) {
+    if (novo_x < 0 || novo_y < 0 )
+	{
         return;
     }
 
-    if(mapData[novo_x][novo_y]==1){
+    if(mapData[novo_x][novo_y]==1)
+	{
         return;
     }
 
-    else{
-        st->playerX += dx;
-        st->playerY += dy;
+    else
+	{
+        st->playerX = novo_x;
+        st->playerY = novo_y;
     }
 }
 
-void drawLight(STATE st, int nrows, int ncols, int mapData[][ncols])
+void draw (STATE st, int nrows, int ncols, int **mapData)
 {
 		int i, j;
 	for (i = 0; i < nrows; i++)
@@ -70,7 +74,7 @@ void drawLight(STATE st, int nrows, int ncols, int mapData[][ncols])
 
 
 
-void draw(int nrows, int ncols, int mapData[][ncols], STATE *st)
+void drawLight (int nrows, int ncols, int **mapData, STATE *st)
 {
 		int i, j;
     for (i = 0; i < nrows; i++)
@@ -139,38 +143,39 @@ void draw(int nrows, int ncols, int mapData[][ncols], STATE *st)
 
 
 
-void update(STATE *st, int ncols, int mapData[][ncols])
+void update(STATE *st, int **mapData)
 {
 	int key = getch();
 
-	mvaddch(st->playerX, st->playerY, '.');
-	switch(key) {
+	//mvaddch(st->playerX, st->playerY, '.');
+	switch(key)
+	{
 		case KEY_A1:
-			case '7': do_movement_action(st, -1, -1,ncols,mapData);
+			case '7': do_movement_action(st, -1, -1, mapData);
 				break;
 		case KEY_UP:
-			case '8': do_movement_action(st, -1, +0,ncols,mapData);
+			case '8': do_movement_action(st, -1, +0, mapData);
 				break;
 		case KEY_A3:
-			case '9': do_movement_action(st, -1, +1,ncols,mapData);
+			case '9': do_movement_action(st, -1, +1, mapData);
 				break;
 		case KEY_LEFT:
-			case '4': do_movement_action(st, +0, -1,ncols,mapData);
+			case '4': do_movement_action(st, +0, -1, mapData);
 				break;
 		case KEY_B2:
 			case '5':
 				break;
 		case KEY_RIGHT:
-			case '6': do_movement_action(st, +0, +1,ncols,mapData);
+			case '6': do_movement_action(st, +0, +1, mapData);
 				break;
 		case KEY_C1:
-			case '1': do_movement_action(st, +1, -1,ncols,mapData);
+			case '1': do_movement_action(st, +1, -1, mapData);
 				break;
 		case KEY_DOWN:
-			case '2': do_movement_action(st, +1, +0,ncols,mapData);
+			case '2': do_movement_action(st, +1, +0, mapData);
 				break;
 		case KEY_C3:
-			case '3': do_movement_action(st, +1, +1,ncols,mapData);
+			case '3': do_movement_action(st, +1, +1, mapData);
 				break;
 		case 'q': endwin(); 
 			exit(0);
@@ -194,7 +199,7 @@ int main()
 	int ncols, nrows;
 	getmaxyx(wnd,nrows,ncols);
 
-	int mapData[nrows][ncols];
+	int **mapData;
 
 	srandom(time(NULL));
 	start_color();
@@ -208,6 +213,12 @@ int main()
 	init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
     init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
     init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
+
+	mapData = malloc(nrows * sizeof(int *));
+    for (int i = 0; i < nrows; i++)
+    {
+        (mapData)[i] = malloc(ncols * sizeof(int));
+    }
 
 	gerar(nrows, ncols, mapData);
 
@@ -226,21 +237,11 @@ int main()
 		attron(COLOR_PAIR(COLOR_BLUE));
 		printw("(%d, %d) %d %d", st.playerX, st.playerY, ncols, nrows); //ao tirar isto da warning de ncols e nrows nao utilizadas
 		attroff(COLOR_PAIR(COLOR_BLUE));
-		//drawLight(st, nrows, ncols, mapData);
-		draw(nrows, ncols, mapData, &st);
+		//draw(st, nrows, ncols, mapData);
+		drawLight(nrows, ncols, mapData, &st);
 		drawplayer(st);
-		attron(COLOR_PAIR(COLOR_YELLOW));
-		// mvaddch(st.playerX - 1, st.playerY - 1, '.' | A_BOLD);
-		// mvaddch(st.playerX - 1, st.playerY + 0, '.' | A_BOLD);
-		// mvaddch(st.playerX - 1, st.playerY + 1, '.' | A_BOLD);
-		// mvaddch(st.playerX + 0, st.playerY - 1, '.' | A_BOLD);
-		// mvaddch(st.playerX + 0, st.playerY + 1, '.' | A_BOLD);
-		// mvaddch(st.playerX + 1, st.playerY - 1, '.' | A_BOLD);
-		// mvaddch(st.playerX + 1, st.playerY + 0, '.' | A_BOLD);
-		// mvaddch(st.playerX + 1, st.playerY + 1, '.' | A_BOLD);
-        attroff(COLOR_PAIR(COLOR_YELLOW));
 		move(st.playerX, st.playerY);
-		update(&st,ncols,mapData);
+		update(&st,mapData);
 	}
 
 	return 0;

@@ -3,8 +3,10 @@
 #include <unistd.h>
 #include <ncurses.h>
 #include <time.h>
+#include <math.h>
 
-
+#define playerX 20
+#define playerY 20
 /* 
 codigo de matriz para armazenar as informações do mapa
     0 -> espaço em branco '.';
@@ -15,7 +17,7 @@ codigo de matriz para armazenar as informações do mapa
     4 -> espaço de dano do inimigo (sem display).
 */
 
-void gerar(int nrows, int ncols, int mapData[][ncols])
+void gerar(int nrows, int ncols, int **mapData)
 {
         int row, col,
             xwall_size, ywall_size, start_row, start_col,
@@ -49,18 +51,14 @@ void gerar(int nrows, int ncols, int mapData[][ncols])
         start_row = rand() % nrows;
         start_col = rand() % ncols;
             // os mods(%) garantem que startrow e col cabem no ecrã porque se for o mod entao será sempre menor que maxrow e col
-
-        // Verifica se o grupo cabe no ecrã
-        if (start_row + xwall_size >= nrows && start_col + ywall_size >= ncols)
-        {
-            continue;
-        }
-
         // Preenche o grupo com o nr '1'
         for (i = start_row; i < start_row + xwall_size; i++)
         {
             for (j = start_col; j < start_col + ywall_size; j++)
-                mapData[i][j] = 1;
+            {
+                if(sqrt(pow(i - playerX, 2) + pow(j - playerY, 2)) > 5)
+                    mapData[i][j] = 1;
+            }
         }
 
         count += xwall_size * ywall_size;
