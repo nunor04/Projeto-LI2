@@ -68,6 +68,77 @@ void drawLight(STATE st, int nrows, int ncols, int mapData[][ncols])
 	}
 }
 
+
+
+void draw(int nrows, int ncols, int mapData[][ncols], STATE *st)
+{
+		int i, j;
+    for (i = 0; i < nrows; i++)
+	{
+        for (j = 0; j < ncols; j++)
+		{
+            // calculate the distance to the current cell from the player's position
+            int dy = j - st->playerY;
+            int dx = i - st->playerX;
+            int dist_squared = dx*dx + dy*dy;
+
+            // check if the current cell is within the player's field of view
+            if (dist_squared <= 400)
+			{  // use a radius of 20 cells
+                // perform a line-of-sight check from the player's position to the current cell
+                int visible = 1;
+                int y1 = st->playerY, x1 = st->playerX, y2 = j, x2 = i;
+                dy = abs(y2 - y1);
+				int sy = y1 < y2 ? 1 : -1;
+                dx = abs(x2 - x1);
+				int sx = x1 < x2 ? 1 : -1; 
+                int err = (dy > dx ? dy : -dx) / 2;
+                while (visible && (x1 != x2 || y1 != y2))
+				{
+                    if (mapData[x1][y1] == 1)
+					{
+                        visible = 0;
+                    }
+                    int e2 = err;
+                    if (e2 > -dy)
+					{
+						err -= dx;
+						y1 += sy;
+					}
+                    if (e2 < dx)
+					{
+						err += dy;
+						x1 += sx;
+					}
+                }
+
+                // draw the appropriate character for the current cell
+                if (visible)
+				{
+                    if (mapData[i][j] == 0)
+					{
+                        mvaddch(i, j,'.');
+                    }
+					else
+					{
+                        mvaddch(i, j, '#');
+                    }
+                } 
+				else
+				{
+                    mvaddch(i, j,' ');
+                }
+            } 
+			else
+			{
+                mvaddch(i, j,' ');
+            }
+        }
+    }
+}
+
+
+
 void update(STATE *st, int ncols, int mapData[][ncols])
 {
 	int key = getch();
@@ -107,7 +178,8 @@ void update(STATE *st, int ncols, int mapData[][ncols])
 	}
 }
 	
-void drawplayer(STATE st){
+void drawplayer(STATE st)
+{
 	attron(COLOR_PAIR(COLOR_YELLOW));
 	mvaddch(st.playerX, st.playerY, '@' | A_BOLD);
 	attroff(COLOR_PAIR(COLOR_YELLOW));
@@ -154,7 +226,8 @@ int main()
 		attron(COLOR_PAIR(COLOR_BLUE));
 		printw("(%d, %d) %d %d", st.playerX, st.playerY, ncols, nrows); //ao tirar isto da warning de ncols e nrows nao utilizadas
 		attroff(COLOR_PAIR(COLOR_BLUE));
-		drawLight(st, nrows, ncols, mapData);
+		//drawLight(st, nrows, ncols, mapData);
+		draw(nrows, ncols, mapData, &st);
 		drawplayer(st);
 		attron(COLOR_PAIR(COLOR_YELLOW));
 		// mvaddch(st.playerX - 1, st.playerY - 1, '.' | A_BOLD);
