@@ -185,6 +185,23 @@ void drawplayer(STATE *st)
 	attroff(COLOR_PAIR(COLOR_YELLOW));
 }
 
+void drawHP(STATE *st)
+{
+		int i;
+	mvaddstr(1, 0, "HP:");	//usa os primeiros 3 indices
+	for (i = 0; i < st->playerMAXHP; i++)
+		mvaddch(1, 3+i, '-');
+	for (i = 0; i < st->playerHP; i++)
+		mvaddch(1, 3+i, 'o');
+}
+
+void drawDMG(STATE *st)
+{
+		int i;
+	mvaddstr(0, 0, "DMG BOOST:");	//usa os primeiros 3 indices
+	for (i = 0; i < st->playerDMG-1; i++)
+		mvaddstr(0, 11+i, "»");
+}
 
 
 int main()
@@ -215,11 +232,12 @@ int main()
 	{
 		move(LINES - 1, 0);
 		attron(COLOR_PAIR(COLOR_BLUE));
-		printw("(%d, %d) %d %d", st.playerX, st.playerY, LINES, COLS); //ao tirar isto da warning de ncols e nrows nao utilizadas
 		attroff(COLOR_PAIR(COLOR_BLUE));
 		//draw(st, mapData);
 		drawLight(mapData, &st);
 		drawplayer(&st);
+		drawHP(&st);
+		drawDMG(&st);
 		move(st.playerX, st.playerY);
 		update(&st,mapData);
 	}
