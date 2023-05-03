@@ -4,9 +4,11 @@
 #include <ncurses.h>
 #include <time.h>
 #include <math.h>
+#include <errno.h>
 
 #define playerX 20
 #define playerY 20
+
 /* 
 codigo de matriz para armazenar as informações do mapa
     0 -> espaço em branco '.';
@@ -17,39 +19,46 @@ codigo de matriz para armazenar as informações do mapa
     4 -> espaço de dano do inimigo (sem display).
 */
 
-void gerar(int nrows, int ncols, int **mapData)
+void gerar(int mapData[LINES][COLS])
 {
         int row, col,
             xwall_size, ywall_size, start_row, start_col,
             i, j,
             count = 0;
-    //srand(time(NULL));
+    srand(time(NULL));  //inicializa o rand
+    {
+        //caso o rand() cause falhas, sai do programa em vez de continuar com dados inválidos
+        perror("srand");
+        exit(EXIT_FAILURE);
+    }
 
     // Obtém o número máximo de linhas e colunas
     //getmaxyx(stdscr, nrows, ncols);
 
-    for (row = 0; row < nrows; row++)
+    for (row = 0; row < LINES; row++)
     {
-        for (col = 0; col < ncols; col++)
-            mapData[row][col] = 1;
-    }
-        //preenche a tela toda com '1'
-
-    for (row = 2; row < nrows-2; row++)
-    {
-        for (col = 2; col < ncols-2; col++)
-            mapData[row][col] = 0;
+        for (col = 0; col < COLS; col++)
+        {
+            if (row >= 2 && row < LINES-2 && col >= 2 && col < COLS-2)
+            {
+                mapData[row][col] = 0;
+            }
+            else
+            {
+                mapData[row][col] = 1;
+            }
+        }
     }
         //preenche a tela toda, exceto as duas linhas de fora da tela com '0' para ter o efeito desejado das bordas
 
     // Coloca o nr 1 aleatoriamente em grupos
-     while (count < nrows * ncols * 0.4)                          // 40% de ocupação (calcula a area do ecra e depois pega em 40% disso)
+     while (count < LINES * COLS * 0.4)                          // 40% de ocupação (calcula a area do ecra e depois pega em 40% disso)
     {
         xwall_size = rand() % 4 + 4;
         ywall_size = rand() % 4 + 4; 
             // tamanho aleatório do grupo, com o segundo elemento funcionando como tipo "zoom"
-        start_row = rand() % nrows;
-        start_col = rand() % ncols;
+        start_row = rand() % LINES;
+        start_col = rand() % COLS;
             // os mods(%) garantem que startrow e col cabem no ecrã porque se for o mod entao será sempre menor que maxrow e col
         // Preenche o grupo com o nr '1'
         for (i = start_row; i < start_row + xwall_size; i++)

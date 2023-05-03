@@ -29,37 +29,26 @@ typedef struct state
  *
  * Um pequeno exemplo que mostra o que se pode fazer
  */
-void do_movement_action(STATE *st, int dx, int dy, int **mapData)
+void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
 {
-
-    int novo_x = st->playerX + dx;
-    int novo_y = st->playerY + dy;
-
-    if (novo_x < 0 || novo_y < 0 )
-	{
-        return;
-    }
-
-    if(mapData[novo_x][novo_y]==1)
-	{
-        return;
-    }
+    if(mapData[st->playerX + dx][st->playerY + dy] == 1)
+		;
 
     else
 	{
-        st->playerX = novo_x;
-        st->playerY = novo_y;
+        st->playerX += dx;
+        st->playerY += dy;
     }
 }
 
-void draw (STATE st, int nrows, int ncols, int **mapData)
+void draw (STATE *st, int mapData[LINES][COLS])
 {
 		int i, j;
-	for (i = 0; i < nrows; i++)
+	for (i = 0; i < LINES; i++)
 	{
-		for (j = 0; j < ncols; j++)
+		for (j = 0; j < COLS; j++)
 		{
-			if(sqrt(pow(i - st.playerX, 2) + pow(j - st.playerY, 2)) <= 20)
+			if(sqrt(pow(i - st->playerX, 2) + pow(j - st->playerY, 2)) <= 20)
 			{
 				if(mapData[i][j] == 0)
 					mvaddch(i, j, '.');
@@ -74,12 +63,12 @@ void draw (STATE st, int nrows, int ncols, int **mapData)
 
 
 
-void drawLight (int nrows, int ncols, int **mapData, STATE *st)
+void drawLight (int mapData[LINES][COLS], STATE *st)
 {
 		int i, j;
-    for (i = 0; i < nrows; i++)
+    for (i = 0; i < LINES; i++)
 	{
-        for (j = 0; j < ncols; j++)
+        for (j = 0; j < COLS; j++)
 		{
             // calculate the distance to the current cell from the player's position
             int dy = j - st->playerY;
@@ -143,11 +132,10 @@ void drawLight (int nrows, int ncols, int **mapData, STATE *st)
 
 
 
-void update(STATE *st, int **mapData)
+void update(STATE *st, int mapData[LINES][COLS])
 {
 	int key = getch();
 
-	//mvaddch(st->playerX, st->playerY, '.');
 	switch(key)
 	{
 		case KEY_A1:
@@ -177,16 +165,21 @@ void update(STATE *st, int **mapData)
 		case KEY_C3:
 			case '3': do_movement_action(st, +1, +1, mapData);
 				break;
-		case 'q': endwin(); 
+		case 'r':
+			st->playerX = 20;
+			st->playerY = 20;
+			break;		//reset para testes
+		case 'q': 
+			endwin(); 
 			exit(0);
 			break;
 	}
 }
 	
-void drawplayer(STATE st)
+void drawplayer(STATE *st)
 {
 	attron(COLOR_PAIR(COLOR_YELLOW));
-	mvaddch(st.playerX, st.playerY, '@' | A_BOLD);
+	mvaddch(st->playerX, st->playerY, '@' | A_BOLD);
 	attroff(COLOR_PAIR(COLOR_YELLOW));
 }
 
@@ -195,11 +188,10 @@ void drawplayer(STATE st)
 int main()
 {
 	STATE st = {20,20,3};	//coordenada 20,20, começa com 3HP
-	WINDOW *wnd = initscr();
-	int ncols, nrows;
-	getmaxyx(wnd,nrows,ncols);
+	//WINDOW *wnd = 
+	initscr();
 
-	int **mapData;
+	int mapData[LINES][COLS];
 
 	srandom(time(NULL));
 	start_color();
@@ -214,32 +206,28 @@ int main()
     init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
     init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
 
-	mapData = malloc(nrows * sizeof(int *));
-    for (int i = 0; i < nrows; i++)
-    {
-        (mapData)[i] = malloc(ncols * sizeof(int));
-    }
 
-	gerar(nrows, ncols, mapData);
+	gerar(mapData);
 
 	/**
 	 * Este código está muito mal escrito!
-	 * Deveria existir uma função chamada draw_player! <<<---- TEMOS DE FAZER
+	 * Deveria existir uma função chamada draw_player!
 	 *
 	 * Se estamos a desenhar uma luz à volta do jogador
-	 * deveria existir uma função chamada draw_light!	<<<---- mas esta aqui ja estou a fazer
+	 * deveria existir uma função chamada draw_light!
 	 *
 	 */
 
 
-	while(1) {
-		move(nrows - 1, 0);
+	while(1)
+	{
+		move(LINES - 1, 0);
 		attron(COLOR_PAIR(COLOR_BLUE));
-		printw("(%d, %d) %d %d", st.playerX, st.playerY, ncols, nrows); //ao tirar isto da warning de ncols e nrows nao utilizadas
+		printw("(%d, %d) %d %d", st.playerX, st.playerY, LINES, COLS); //ao tirar isto da warning de ncols e nrows nao utilizadas
 		attroff(COLOR_PAIR(COLOR_BLUE));
-		//draw(st, nrows, ncols, mapData);
-		drawLight(nrows, ncols, mapData, &st);
-		drawplayer(st);
+		//draw(st, mapData);
+		drawLight(mapData, &st);
+		drawplayer(&st);
 		move(st.playerX, st.playerY);
 		update(&st,mapData);
 	}
