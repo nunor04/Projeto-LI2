@@ -21,7 +21,9 @@ typedef struct state
 {
 	int playerX;
 	int playerY;
-	int playerHP;	//o que vai contar a hp do jogador, podera ser usado depois para o sistema de vida
+	int playerHP;	//o que vai contar a hp do jogador, podera ser usado depois para o sistema de vida, com itens para curar e outros para aumentar a vida
+	int playerMAXHP;	//o que vai contar o maximo valor possivel para a vida que aumenta com o item de aumentar a vida, para prevenir que "cure" para mais vida do que temdesbloqueado
+	int playerDMG; 	//base do jogador que começa em 1 e pode aumentar com itens
 } STATE;
 
 
@@ -168,8 +170,7 @@ void update(STATE *st, int mapData[LINES][COLS])
 		case 'r':
 			st->playerX = 20;
 			st->playerY = 20;
-			st->playerHP = 3;
-			break;		//reset para testes
+			break;		//reset para testes, TIRAR NA VERSÃO FINAL
 		case 'q': 
 			endwin(); 
 			exit(0);
@@ -208,7 +209,7 @@ int main()
 
 	gerar(mapData);
 
-	STATE st = {20,20,3};			//coordenada 20,20, começa com 3HP
+	STATE st = {20,20,3,3,1};			//coordenada 20,20, começa com 3HP atual, 3HP max e 1DMG inicial
 
 	while(1)
 	{
