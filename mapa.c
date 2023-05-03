@@ -26,14 +26,6 @@ void gerar(int mapData[LINES][COLS])
             i, j,
             count = 0;
     srand(time(NULL));  //inicializa o rand
-    {
-        //caso o rand() cause falhas, sai do programa em vez de continuar com dados inválidos
-        perror("srand");
-        exit(EXIT_FAILURE);
-    }
-
-    // Obtém o número máximo de linhas e colunas
-    //getmaxyx(stdscr, nrows, ncols);
 
     for (row = 0; row < LINES; row++)
     {

@@ -168,6 +168,7 @@ void update(STATE *st, int mapData[LINES][COLS])
 		case 'r':
 			st->playerX = 20;
 			st->playerY = 20;
+			st->playerHP = 3;
 			break;		//reset para testes
 		case 'q': 
 			endwin(); 
@@ -187,8 +188,6 @@ void drawplayer(STATE *st)
 
 int main()
 {
-	STATE st = {20,20,3};	//coordenada 20,20, começa com 3HP
-	//WINDOW *wnd = 
 	initscr();
 
 	int mapData[LINES][COLS];
@@ -209,15 +208,7 @@ int main()
 
 	gerar(mapData);
 
-	/**
-	 * Este código está muito mal escrito!
-	 * Deveria existir uma função chamada draw_player!
-	 *
-	 * Se estamos a desenhar uma luz à volta do jogador
-	 * deveria existir uma função chamada draw_light!
-	 *
-	 */
-
+	STATE st = {20,20,3};			//coordenada 20,20, começa com 3HP
 
 	while(1)
 	{
