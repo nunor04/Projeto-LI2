@@ -4,10 +4,12 @@
 #include <ncurses.h>
 #include <time.h>
 #include <math.h>
-#include <errno.h>
+
+#include "types.h"
 
 #define playerX 20
 #define playerY 20
+
 
 /* 
 codigo de matriz para armazenar as informações do mapa
@@ -28,7 +30,9 @@ void gerar(int mapData[LINES][COLS])
         int row, col,
             xwall_size, ywall_size, start_row, start_col,
             i, j,
-            count = 0;
+            count = 0,
+            hpboost = 3, dmgboost = 3,
+            xh = 1, yh = 1;
     srand(time(NULL));  //inicializa o rand
 
     for (row = 0; row < LINES; row++)
@@ -68,5 +72,33 @@ void gerar(int mapData[LINES][COLS])
 
         count += xwall_size * ywall_size;
             //tira a area preenchida pelo "bloco" dos espaços possiveis para preencher
+    }
+
+    while(hpboost > 0)
+    {
+        while(mapData[xh][yh] == 1|| sqrt(pow(xh - playerX, 2) + pow(yh - playerY, 2)) < 20)     
+                //so para o loop quando as coordenadas escolhidas não estão dentro de uma parede
+        {
+            xh = rand() % LINES;    //vai randomizando as coordenadas do item até estarem acessíveis ao jogador
+            yh = rand() % COLS;
+        }
+
+        mapData[xh][yh] = 6;        //depois de ter coordenadas aceitaveis, altera o espaço para o item e recomeça para os outros itens
+        hpboost--;
+        xh = 0, yh = 0;
+    }
+
+    while(dmgboost > 0)
+    {
+        while(mapData[xh][yh] == 1 || mapData[xh][yh] == 6 || sqrt(pow(xh - playerX, 2) + pow(yh - playerY, 2)) < 20)     
+                //so para o loop quando as coordenadas escolhidas não estão dentro de uma parede
+        {
+            xh = rand() % LINES;    //vai randomizando as coordenadas do item até estarem acessíveis ao jogador
+            yh = rand() % COLS;
+        }
+
+        mapData[xh][yh] = 7;        //depois de ter coordenadas aceitaveis, altera o espaço para o item e recomeça para os outros itens
+        dmgboost--;
+        xh = 0, yh = 0;
     }
 }

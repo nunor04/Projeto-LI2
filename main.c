@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "mapa.h"
+#include "types.h"
 
 /**
  *
@@ -17,15 +18,6 @@
  * - o que está em cada casa
  *
  */
-typedef struct state
-{
-	int playerX;
-	int playerY;
-	int playerHP;	//o que vai contar a hp do jogador, podera ser usado depois para o sistema de vida, com itens para curar e outros para aumentar a vida
-	int playerMAXHP;	//o que vai contar o maximo valor possivel para a vida que aumenta com o item de aumentar a vida, para prevenir que "cure" para mais vida do que temdesbloqueado
-	int playerDMG; 	//base do jogador que começa em 1 e pode aumentar com itens
-} STATE;
-
 
 /**
  *
@@ -43,22 +35,31 @@ void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
     }
 }
 
-void draw (STATE *st, int mapData[LINES][COLS])
+void draw (int mapData[LINES][COLS])
 {
 		int i, j;
 	for (i = 0; i < LINES; i++)
 	{
 		for (j = 0; j < COLS; j++)
 		{
-			if(sqrt(pow(i - st->playerX, 2) + pow(j - st->playerY, 2)) <= 20)
-			{
 				if(mapData[i][j] == 0)
 					mvaddch(i, j, '.');
 				if(mapData[i][j] == 1)
 					mvaddch(i, j, '#');
 				if(mapData[i][j] == 2)
 					mvaddch(i, j, '~');
-			}
+				if(mapData[i][j] == 6)
+				{
+					attron(COLOR_PAIR(COLOR_YELLOW));
+					mvaddch(i, j, 'h');
+					attroff(COLOR_PAIR(COLOR_YELLOW));
+				}
+				if(mapData[i][j] == 7)
+				{
+					attron(COLOR_PAIR(COLOR_YELLOW));
+                    mvaddch(i, j, 'd');
+					attroff(COLOR_PAIR(COLOR_YELLOW));
+                }
 		}
 	}
 }
@@ -114,9 +115,21 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
 					{
                         mvaddch(i, j,'.');
                     }
-					else
+					if (mapData[i][j] == 1)
 					{
-                        mvaddch(i, j, '#');
+                        mvaddch(i, j,'#');
+                    }
+					if(mapData[i][j] == 6)
+					{
+						attron(COLOR_PAIR(COLOR_YELLOW));
+                        mvaddch(i, j, 'h');
+						attroff(COLOR_PAIR(COLOR_YELLOW));
+                    }
+					if(mapData[i][j] == 7)
+					{
+						attron(COLOR_PAIR(COLOR_YELLOW));
+                        mvaddch(i, j, 'd');
+						attroff(COLOR_PAIR(COLOR_YELLOW));
                     }
                 } 
 				else
@@ -200,7 +213,22 @@ void drawDMG(STATE *st)
 		int i;
 	mvaddstr(0, 0, "DMG BOOST:");	//usa os primeiros 3 indices
 	for (i = 0; i < st->playerDMG-1; i++)
-		mvaddstr(0, 11+i, "»");
+		mvaddstr(0, 11+i, ">");
+}
+
+void itemcollect(STATE *st, int mapData[LINES][COLS])
+{
+	if(mapData[st->playerX][st->playerY] == 6)
+	{
+		st->playerMAXHP++;
+		st->playerHP = st->playerMAXHP;
+		mapData[st->playerX][st->playerY] = 0;
+	}
+	if(mapData[st->playerX][st->playerY] == 7)
+	{
+		st->playerDMG++;
+		mapData[st->playerX][st->playerY] = 0;
+	}
 }
 
 
@@ -223,17 +251,15 @@ int main()
     init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
     init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
 
-
 	gerar(mapData);
 
 	STATE st = {20,20,3,3,1};			//coordenada 20,20, começa com 3HP atual, 3HP max e 1DMG inicial
-
+ 
 	while(1)
 	{
 		move(LINES - 1, 0);
-		attron(COLOR_PAIR(COLOR_BLUE));
-		attroff(COLOR_PAIR(COLOR_BLUE));
-		//draw(st, mapData);
+		itemcollect(&st, mapData);
+		//draw(mapData);
 		drawLight(mapData, &st);
 		drawplayer(&st);
 		drawHP(&st);
