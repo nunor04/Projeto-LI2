@@ -1,3 +1,8 @@
+
+
+
+
+
 #include <curses.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,21 +41,22 @@ void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
 }
 
 MOBS mobs[25];
-void mob_spawn(int mapData[LINES][COLS], MOBS mobs[15])
+void mob_spawn(int mapData[LINES][COLS], MOBS mobs[25])
 {
     for (int i = 0; i < 25; i++) {
-        mobs[i].mobtype = 'e';
+	    mobs[i].mobtype = 'e';
 		mobs[i].mobDMG = 1;
         mobs[i].mobHP = 2;
         do {
-            mobs[i].mobX = rand() % LINES;
+			mobs[i].mobX = rand() % LINES;
             mobs[i].mobY = rand() % COLS;
         } while (mapData[mobs[i].mobX][mobs[i].mobY] != 0);
        mapData[mobs[i].mobX][mobs[i].mobY] = 8;
-    }
+     
+	}
 }
 
-void mob_movement(int mapData[LINES][COLS], MOBS mobs[5])
+void mob_movement(int mapData[LINES][COLS], MOBS mobs[25])
 {
     for (int i = 0; i < 25; i++)
     {
@@ -200,7 +206,10 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
 
 void update(STATE *st, int mapData[LINES][COLS])
 {
-	int key = getch();
+ 
+  	nodelay(stdscr, TRUE); // make getch non-blocking
+    int key = getch();
+    nodelay(stdscr, FALSE);
 
 	switch(key)
 	{
@@ -240,6 +249,7 @@ void update(STATE *st, int mapData[LINES][COLS])
 			exit(0);
 			break;
 	}
+  
 }
 	
 void drawplayer(STATE *st)
@@ -308,18 +318,28 @@ int main()
 	
 	STATE st = {20,20,3,3,1};			//coordenada 20,20, começa com 3HP atual, 3HP max e 1DMG inicial
  
-	while(1)
+	int i = 0;
+	int j = 0;
+    
+
+	
+	while (true) 
 	{
-		move(LINES - 1, 0);
-		itemcollect(&st, mapData);
-		//draw(mapData);
-		drawLight(mapData, &st);
-		drawplayer(&st);
-		drawHP(&st);
-		drawDMG(&st);
-		mob_movement(mapData,mobs);
-		move(st.playerX, st.playerY);
-		update(&st,mapData);
+	 
+	 drawLight(mapData, &st);
+	 drawplayer(&st);
+	 drawHP(&st);
+	 drawDMG(&st);
+	 itemcollect(&st, mapData);
+	 update(&st,mapData);
+	 refresh();
+	 move(LINES - 1, 0);
+	 i++;
+	 if(i == j + 32000)
+	 {
+      mob_movement(mapData,mobs);
+	  j = i;
+	 }
 	}
 
 	return 0;
