@@ -35,6 +35,51 @@ void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
     }
 }
 
+MOBS mobs[25];
+void mob_spawn(int mapData[LINES][COLS], MOBS mobs[15])
+{
+    for (int i = 0; i < 25; i++) {
+        mobs[i].mobtype = 'e';
+		mobs[i].mobDMG = 1;
+        mobs[i].mobHP = 2;
+        do {
+            mobs[i].mobX = rand() % LINES;
+            mobs[i].mobY = rand() % COLS;
+        } while (mapData[mobs[i].mobX][mobs[i].mobY] != 0);
+       mapData[mobs[i].mobX][mobs[i].mobY] = 8;
+    }
+}
+
+void mob_movement(int mapData[LINES][COLS], MOBS mobs[5])
+{
+    for (int i = 0; i < 25; i++)
+    {
+        int x = rand() % 4;
+
+        if(x == 0 && mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0)
+        {
+            mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+            mobs[i].mobY--;
+        }
+        else if(x == 1 && mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0)
+        {
+            mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+            mobs[i].mobX++;
+        }
+        else if(x == 2 && mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0)
+        {
+            mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+            mobs[i].mobY++;
+        }
+        else if(x == 3 && mapData[mobs[i].mobX -1][mobs[i].mobY] == 0)
+        {
+            mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+            mobs[i].mobX--;
+        }
+        mapData[mobs[i].mobX][mobs[i].mobY] = 8;
+    }
+}
+
 void draw (int mapData[LINES][COLS])
 {
 		int i, j;
@@ -111,7 +156,7 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
                 // draw the appropriate character for the current cell
                 if (visible)
 				{
-                    if (mapData[i][j] == 0)
+					if (mapData[i][j] == 0)
 					{
                         mvaddch(i, j,'.');
                     }
@@ -131,7 +176,13 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
                         mvaddch(i, j, 'd');
 						attroff(COLOR_PAIR(COLOR_YELLOW));
                     }
-                } 
+                    if(mapData[i][j] == 8)
+					{
+						attron(COLOR_PAIR(COLOR_RED));
+						mvaddch(i, j, 'e');
+					    attroff(COLOR_PAIR(COLOR_RED));
+					}
+				} 
 				else
 				{
                     mvaddch(i, j,' ');
@@ -250,9 +301,11 @@ int main()
 	init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
     init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
     init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
+    init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);
 
 	gerar(mapData);
-
+    mob_spawn(mapData, mobs);
+	
 	STATE st = {20,20,3,3,1};			//coordenada 20,20, começa com 3HP atual, 3HP max e 1DMG inicial
  
 	while(1)
@@ -264,6 +317,7 @@ int main()
 		drawplayer(&st);
 		drawHP(&st);
 		drawDMG(&st);
+		mob_movement(mapData,mobs);
 		move(st.playerX, st.playerY);
 		update(&st,mapData);
 	}
