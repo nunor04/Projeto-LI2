@@ -56,35 +56,166 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[25])
 	}
 }
 
-void mob_movement(int mapData[LINES][COLS], MOBS mobs[25])
-{
-    for (int i = 0; i < 25; i++)
-    {
-        int x = rand() % 4;
 
-        if(x == 0 && mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0)
+void mob_movement(int mapData[LINES][COLS], MOBS mobs[25], int playerX, int playerY)
+{
+  for(int i = 0; i < 25; i++)
+  {
+    int dx = mobs[i].mobX - playerX;
+    int dy = mobs[i].mobY - playerY;
+    double dist_squared = sqrt(dx*dx + dy*dy);
+
+    if(dist_squared < 12)
+    {
+	 
+      int x = mobs[i].mobX;
+      int y = mobs[i].mobY;
+      int sx = dx > 0 ? -1 : 1;
+      int sy = dy > 0 ? -1 : 1;
+      int err = 0;
+      int deltaError = abs(dy) * 2;
+      int wallFound = 0;
+
+      for(int j = 0; j <= abs(dx); j++)
+      {
+        if(mapData[x][y] == 1) // Wall found
         {
-            mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-            mobs[i].mobY--;
+          wallFound = 1;
+          break;
         }
-        else if(x == 1 && mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0)
+
+        err += deltaError;
+
+        if(err > abs(dx) * 2)
         {
-            mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-            mobs[i].mobX++;
+          err -= abs(dx) * 2;
+          y += sy;
         }
-        else if(x == 2 && mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0)
+
+        x += sx;
+      }
+
+      if(wallFound == 1)
+      {
+        // Move mob randomly
+        int s = rand() % 4;
+
+        if(s == 0 && mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0)
         {
-            mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-            mobs[i].mobY++;
+          mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+          mobs[i].mobY--;
         }
-        else if(x == 3 && mapData[mobs[i].mobX -1][mobs[i].mobY] == 0)
+        else if(s == 1 && mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0)
         {
-            mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-            mobs[i].mobX--;
+          mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+          mobs[i].mobX++;
         }
+        else if(s == 2 && mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0)
+        {
+          mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+          mobs[i].mobY++;
+        }
+        else if(s == 3 && mapData[mobs[i].mobX -1][mobs[i].mobY] == 0)
+        {
+          mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+          mobs[i].mobX--;
+        }
+
         mapData[mobs[i].mobX][mobs[i].mobY] = 8;
-    }
+      }
+      else
+	  {
+		if(mobs[i].mobX > playerX)
+		{
+			if(mobs[i].mobY > playerY && mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 0)
+			{
+				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				mobs[i].mobX--;
+				mobs[i].mobY--;
+			}
+		    else if(mobs[i].mobY < playerY && mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 0)
+		    {
+			    mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				mobs[i].mobX--;
+				mobs[i].mobY++;
+		    }
+		   else if(mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0)
+		   {
+               mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			   mobs[i].mobX--;
+		   }
+		}
+	    else if(mobs[i].mobX < playerX)
+		{
+			if(mobs[i].mobY > playerY && mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 0)
+			{
+				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				mobs[i].mobX++;
+				mobs[i].mobY--;
+			}
+		    else if(mobs[i].mobY < playerY && mapData[mobs[i].mobX + 1][mobs[i].mobY + 1] == 0)
+		    {
+			    mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				mobs[i].mobX++;
+				mobs[i].mobY++;
+		    }
+		   else if(mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0)
+		   {
+               mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			   mobs[i].mobX++;
+		   }
+		}
+	    else if(mobs[i].mobX == playerX)
+		{
+			if(mobs[i].mobY > playerY && mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0)
+			{
+				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				mobs[i].mobY--;
+			}
+		    else if(mobs[i].mobY < playerY && mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0)
+		    {
+			    mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				mobs[i].mobY++;
+		    }
+		   else if(mapData[mobs[i].mobX][mobs[i].mobY] == 0)
+		   {
+               continue;
+		   }
+		}
+	      mapData[mobs[i].mobX][mobs[i].mobY] = 8;
+	  }
+	}
+    else 
+	{
+	  int s2 = rand() % 4;
+
+        if(s2 == 0 && mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0)
+        {
+          mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+          mobs[i].mobY--;
+        }
+        else if(s2 == 1 && mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0)
+        {
+          mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+          mobs[i].mobX++;
+        }
+        else if(s2 == 2 && mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0)
+        {
+          mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+          mobs[i].mobY++;
+        }
+        else if(s2 == 3 && mapData[mobs[i].mobX -1][mobs[i].mobY] == 0)
+        {
+          mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+          mobs[i].mobX--;
+        }
+
+        mapData[mobs[i].mobX][mobs[i].mobY] = 8;	
+	}
+  }
 }
+
+
 
 void draw (int mapData[LINES][COLS])
 {
@@ -335,9 +466,9 @@ int main()
 	 refresh();
 	 move(LINES - 1, 0);
 	 i++;
-	 if(i == j + 32000)
+	 if(i == j + 6000)
 	 {
-      mob_movement(mapData,mobs);
+      mob_movement(mapData, mobs, st.playerX, st.playerY);
 	  j = i;
 	 }
 	}
