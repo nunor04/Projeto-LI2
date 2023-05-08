@@ -14,5 +14,6 @@ typedef struct mob
 	int mobY;
 	int mobHP;
 	int mobDMG;
+    int mobHITS;
 
 } MOBS;

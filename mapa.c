@@ -23,6 +23,8 @@ codigo de matriz para armazenar as informações do mapa
     5 -> item de cura, restaura 1HP ao jogador '+';
     6 -> item que aumenta playerMAXHP por 1 'h';
     7 -> item que aumenta playerDMG por 1 'd';
+    8 -> mobs
+    9 -> *
 */
 
 void gerar(int mapData[LINES][COLS])
@@ -102,3 +104,7 @@ void gerar(int mapData[LINES][COLS])
         xh = 0, yh = 0;
     }
 }
+
+
+
+
