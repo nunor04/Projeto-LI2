@@ -40,15 +40,15 @@ void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
     }
 }
 
-MOBS mobs[25];
-void mob_spawn(int mapData[LINES][COLS], MOBS mobs[25])
+MOBS mobs[5];
+void mob_spawn(int mapData[LINES][COLS], MOBS mobs[5])
 {
-    for (int i = 0; i < 25; i++) {
+    for (int i = 0; i < 5; i++) {
 	    mobs[i].mobtype = 'e';
 		mobs[i].mobDMG = 1;
-        mobs[i].mobHP = 2;
-        do {
-			mobs[i].mobX = rand() % LINES;
+        mobs[i].mobHP = 2;                                       //Esta funcao spawna os mobs random mas nao leva em conta a distancia do spawn
+        do {                                                     // o que significa que o jogador mal spawna pode ter mobs a ataca-lo. 
+			mobs[i].mobX = rand() % LINES;                       //Nao sei se querem mudar isso mas caso sim nao e dificil   (LOPES)         
             mobs[i].mobY = rand() % COLS;
         } while (mapData[mobs[i].mobX][mobs[i].mobY] != 0);
        mapData[mobs[i].mobX][mobs[i].mobY] = 8;
@@ -57,9 +57,9 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[25])
 }
 
 
-void mob_movement(int mapData[LINES][COLS], MOBS mobs[25], int playerX, int playerY)
+void mob_movement(int mapData[LINES][COLS], MOBS mobs[5], int playerX, int playerY)
 {
-  for(int i = 0; i < 25; i++)
+  for(int i = 0; i < 5; i++)
   {
     int dx = mobs[i].mobX - playerX;
     int dy = mobs[i].mobY - playerY;
@@ -78,7 +78,7 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[25], int playerX, int play
 
       for(int j = 0; j <= abs(dx); j++)
       {
-        if(mapData[x][y] == 1) // Wall found
+        if(mapData[x][y] == 1) 
         {
           wallFound = 1;
           break;
@@ -97,7 +97,7 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[25], int playerX, int play
 
       if(wallFound == 1)
       {
-        // Move mob randomly
+        
         int s = rand() % 4;
 
         if(s == 0 && mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0)
@@ -215,7 +215,21 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[25], int playerX, int play
   }
 }
 
+void mob_attack(STATE *st, MOBS mobs[5]) 
+{
+    for (int i = 0; i < 5; i++)                      // Esta funcao e respondavel por retirar hp do jogador													 
+	{                                                // quando um mob se encontra perto. Mas com esta 
+     int dx = mobs[i].mobX - st->playerX;            // abordagem todos os mobs e um bloco do jogador o conseguem atacar ao mesmo tempo.
+     int dy = mobs[i].mobY - st->playerY;            // Da maneira atual no maximo o jogador leva 9 de dano por segundo se estiver rodeado por mobs.(LOPES)
+     double distancia = sqrt(dx * dx + dy * dy);     
+     if (distancia <= 1) 
+	 {
+        st->playerHP -= mobs[i].mobDMG;
+     }
+    }
+}
 
+//void player_attack() -> Funcao que permite o player atacar mobs 
 
 void draw (int mapData[LINES][COLS])
 {
@@ -397,7 +411,12 @@ void drawHP(STATE *st)
 	for (i = 0; i < st->playerMAXHP; i++)
 		mvaddch(1, 3+i, '-');
 	for (i = 0; i < st->playerHP; i++)
-		mvaddch(1, 3+i, 'o');
+		mvaddch(1, 3+i, '|');  // alterei o simbolo de 'o' para '|'. Acho que fica melhor fica a parecer uma barra de HP.(LOPES)
+    if(st->playerMAXHP < st->playerHP)
+	{
+	 for (i = 0; i < st->playerHP - st->playerMAXHP; i++)
+	 mvaddch(1, st->playerHP-i, ' ');
+	}
 }
 
 void drawDMG(STATE *st)
@@ -412,7 +431,7 @@ void itemcollect(STATE *st, int mapData[LINES][COLS])
 {
 	if(mapData[st->playerX][st->playerY] == 6)
 	{
-		st->playerMAXHP++;
+		st->playerMAXHP++;                                 //Quando o player come um h ele recupera a vida toda. Penso que apenas devia recuperar um pouco.
 		st->playerHP = st->playerMAXHP;
 		mapData[st->playerX][st->playerY] = 0;
 	}
@@ -422,7 +441,7 @@ void itemcollect(STATE *st, int mapData[LINES][COLS])
 		mapData[st->playerX][st->playerY] = 0;
 	}
 }
-
+                                                            
 
 int main()
 {
@@ -447,31 +466,57 @@ int main()
 	gerar(mapData);
     mob_spawn(mapData, mobs);
 	
-	STATE st = {20,20,3,3,1};			//coordenada 20,20, começa com 3HP atual, 3HP max e 1DMG inicial
+	STATE st = {20,20,20,20,1};			//coordenada 20,20, começa com 3HP atual, 3HP max e 1DMG inicial                                    
+	int i = 0;                          // alterei o hp do player para 20 para ser mais facil definir o dano dos mobs. Se o player tivesse de hp 3, ia ter de por o dano dos mobs decimal
+	int j = 0;                          // caso contrario o mobs matava o player em 3 ataques o que imensamente rapido oq ue significava alterar todas as funcoes de int para float e nao me apetecia.
+    int s = 0;                          // (LOPES)
+	int p = 0;                                   
  
-	int i = 0;
-	int j = 0;
-    
-
-	
 	while (true) 
 	{
-	 
-	 drawLight(mapData, &st);
-	 drawplayer(&st);
-	 drawHP(&st);
+	 //if(st.playerHP == 0) break;         se ativarmos o if comentado quando o player morre o jogo fecha.
+	 drawLight(mapData, &st);             //mas essa maneira e um bocado merda, estou a trabalhar numa forma
+	 drawplayer(&st);                     // de quando o jogador morrer aparece gameover  e 2s depois o jogo reinicia
+	 drawHP(&st);                         // com um novo mapa e tudo novo. (LOPES)
 	 drawDMG(&st);
 	 itemcollect(&st, mapData);
-	 update(&st,mapData);
+	 update(&st,mapData);                    
 	 refresh();
 	 move(LINES - 1, 0);
 	 i++;
-	 if(i == j + 6000)
+	 s++;
+	 if(s == p + 13500) // 13500 voltas = +/- 1 segundo --> Ou seja o jogador leva 1 de dano a cada segundo. (LOPES)
 	 {
-      mob_movement(mapData, mobs, st.playerX, st.playerY);
-	  j = i;
+	  mob_attack(&st, mobs);
+	  p = s;
+	 }
+	 if(i == j + 6000)  
+	 {
+		mob_movement(mapData, mobs, st.playerX, st.playerY);
+	    j = i;
 	 }
 	}
 
 	return 0;
 }
+
+/* Coisas a fazer:
+ 
+ Corrigir a velocidade dos mobs.(Diminuir a velocidade de perseguicao para algo possivel de se sobreviver. Definir uma velocidade de vaguemento menor que a de perseguicao.)
+ Fazer com que o player consiga dar dano
+ Corrigir os buffs do player.
+ Fazer com que os mobs morram e spawn novos.
+ Criar um sistema de game over para qnd o player morre. 
+
+ Se houver tempo:
+
+ Acrescentar novos mobs
+ Acrescentar novas salas 
+e tc
+
+Cenas meio merda:
+- o player recupera a vida toda quando come um h
+- os mobs nao levam em conta a distancia ao spawn para spawnar. O player pode comecar a levar dano imediatamente apos spawnar
+
+
+*/
