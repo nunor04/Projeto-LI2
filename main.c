@@ -46,14 +46,41 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[5])
     for (int i = 0; i < 5; i++) {
 	    mobs[i].mobtype = 'e';
 		mobs[i].mobDMG = 1;
-        mobs[i].mobHP = 2;                                       //Esta funcao spawna os mobs random mas nao leva em conta a distancia do spawn
-        do {                                                     // o que significa que o jogador mal spawna pode ter mobs a ataca-lo. 
-			mobs[i].mobX = rand() % LINES;                       //Nao sei se querem mudar isso mas caso sim nao e dificil   (LOPES)         
+        mobs[i].mobHP = 2;                                       //Esta funcao spawna os mobs random
+        do {                                                     //mas sinto que 5 é demasiado pouco (joao)
+			mobs[i].mobX = rand() % LINES;                       //ja meti para ficar longe do spawn, ta mesmo aqui abaixo (20,20) sendo o spawn do player (joao)         
             mobs[i].mobY = rand() % COLS;
-        } while (mapData[mobs[i].mobX][mobs[i].mobY] != 0);
+        } while (mapData[mobs[i].mobX][mobs[i].mobY] != 0 ||sqrt(pow(mobs[i].mobX - 20, 2) + pow(mobs[i].mobY - 20, 2)) < 10);
        mapData[mobs[i].mobX][mobs[i].mobY] = 8;
      
 	}
+}
+
+void mob_respawn(int mapData[LINES][COLS], MOBS mobs[5], STATE* st)
+{
+		int i;
+	for(i = 0; i < 5; i++)
+	{
+		if(mobs[i].mobHP <= 0)
+		{
+				mobs[i].mobtype = 'e';
+				mobs[i].mobDMG = 1;
+        		mobs[i].mobHP = 2;  	//cria os status para novo mob
+			if(rand() % 5 == 0)
+				mapData[mobs[i].mobX][mobs[i].mobY] = 5;	//chance de drop de item de cura
+			else
+				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			do 
+			{
+				mobs[i].mobX = rand() % LINES;        
+            	mobs[i].mobY = rand() % COLS;
+        	}
+			while (mapData[mobs[i].mobX][mobs[i].mobY] != 0 ||sqrt(pow(mobs[i].mobX - st->playerX, 2) + pow(mobs[i].mobY - st->playerY, 2)) < 10);
+       		mapData[mobs[i].mobX][mobs[i].mobY] = 8;
+		}
+	}
+
+	//aqui isto ve continuamente se ha algum mob morto e se ha entao usa a mesma cena de spawnar mas para 10 casas ou mais de distancia da posiçao atual do jogador
 }
 
 
@@ -222,14 +249,45 @@ void mob_attack(STATE *st, MOBS mobs[5])
      int dx = mobs[i].mobX - st->playerX;            // abordagem todos os mobs e um bloco do jogador o conseguem atacar ao mesmo tempo.
      int dy = mobs[i].mobY - st->playerY;            // Da maneira atual no maximo o jogador leva 9 de dano por segundo se estiver rodeado por mobs.(LOPES)
      double distancia = sqrt(dx * dx + dy * dy);     
-     if (distancia <= 1) 
+     if (distancia <= sqrt(2)) 
 	 {
         st->playerHP -= mobs[i].mobDMG;
      }
     }
 }
 
-//void player_attack() -> Funcao que permite o player atacar mobs 
+void player_attack(STATE *st, MOBS mobs[5]) //-> Funcao que permite o player atacar mobs
+	//so acionado na tecla	|v
+	//da dano nas casas a volta dele apenas	|v
+	//muda os icons no mapa a volta para indicar ataque		
+	//passado algum delay reverte ao que era		<- estes os dois e que falta fazer
+	//quando um mob recebe dano fazer flash da sua cor para preto e devolta para vermelho tambem com a cena dos intervalos	|v
+{
+		int i, j, k;
+	for (i = st->playerX-2; i <= st->playerX+2; i++)		
+	{
+		for (j = st->playerY-2; j <= st->playerY+2; j++)		//vem o quadrado a volta do jogador
+		{
+			for (k = 0; k < 5; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
+			{
+				if (i == mobs[k].mobX && j == mobs[k].mobY)
+				{
+					//attron(COLOR_PAIR(COLOR_BLACK));
+					//mvaddch(i, j, 'e');
+					//attroff(COLOR_PAIR(COLOR_BLACK));		//flash inicial preto dos mobs
+
+					mobs[k].mobHP-= st->playerDMG;	//retira a hp
+
+					//for(h = 0; h < 100000; h++)
+					//	;
+					//attron(COLOR_PAIR(COLOR_RED));
+					//mvaddch(i, j, 'e');
+					//attroff(COLOR_PAIR(COLOR_RED));		//passado delay, reverte a cor para vermelho
+				}
+			}
+		}
+	}
+}
 
 void draw (int mapData[LINES][COLS])
 {
@@ -315,6 +373,12 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
 					{
                         mvaddch(i, j,'#');
                     }
+					if(mapData[i][j] == 5)
+					{
+						attron(COLOR_PAIR(COLOR_BLUE));
+                        mvaddch(i, j, '+');
+						attroff(COLOR_PAIR(COLOR_BLUE));
+                    }
 					if(mapData[i][j] == 6)
 					{
 						attron(COLOR_PAIR(COLOR_YELLOW));
@@ -389,6 +453,9 @@ void update(STATE *st, int mapData[LINES][COLS])
 			st->playerX = 20;
 			st->playerY = 20;
 			break;		//reset para testes, TIRAR NA VERSÃO FINAL
+		case 'c':
+			player_attack(st, mobs);
+			break;
 		case 'q': 
 			endwin(); 
 			exit(0);
@@ -429,10 +496,14 @@ void drawDMG(STATE *st)
 
 void itemcollect(STATE *st, int mapData[LINES][COLS])
 {
+	if(mapData[st->playerX][st->playerY] == 5)
+	{
+		st->playerHP++;
+		mapData[st->playerX][st->playerY] = 0;
+	}
 	if(mapData[st->playerX][st->playerY] == 6)
 	{
-		st->playerMAXHP++;                                 //Quando o player come um h ele recupera a vida toda. Penso que apenas devia recuperar um pouco.
-		st->playerHP = st->playerMAXHP;
+		st->playerMAXHP++;
 		mapData[st->playerX][st->playerY] = 0;
 	}
 	if(mapData[st->playerX][st->playerY] == 7)
@@ -480,7 +551,8 @@ int main()
 	 drawHP(&st);                         // com um novo mapa e tudo novo. (LOPES)
 	 drawDMG(&st);
 	 itemcollect(&st, mapData);
-	 update(&st,mapData);                    
+	 update(&st,mapData);
+	 mob_respawn(mapData, mobs, &st);                    
 	 refresh();
 	 move(LINES - 1, 0);
 	 i++;
@@ -503,20 +575,14 @@ int main()
 /* Coisas a fazer:
  
  Corrigir a velocidade dos mobs.(Diminuir a velocidade de perseguicao para algo possivel de se sobreviver. Definir uma velocidade de vaguemento menor que a de perseguicao.)
- Fazer com que o player consiga dar dano
- Corrigir os buffs do player.
- Fazer com que os mobs morram e spawn novos.
+	-> epah para mim a velocidade deles estava ok, mas achei estranho terem de estar mesmo em cima do player para atacar (joao)
+ Corrigir os buffs do player.		<- explica?
  Criar um sistema de game over para qnd o player morre. 
 
  Se houver tempo:
 
+ animações de ataque para o jogador e animação de receber dano dos mobs
  Acrescentar novos mobs
- Acrescentar novas salas 
+ Acrescentar novas salas -- a boss estelita ira acontecer (joao)
 e tc
-
-Cenas meio merda:
-- o player recupera a vida toda quando come um h
-- os mobs nao levam em conta a distancia ao spawn para spawnar. O player pode comecar a levar dano imediatamente apos spawnar
-
-
 */
