@@ -1,8 +1,3 @@
-
-
-
-
-
 #include <curses.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,49 +13,20 @@ int r = 0;
 int aon = 0;
 int uon = 0;
 
-/**
- *
- * Falta muita coisa, incluindo por exemplo:
- * - o mapa
- * - os monstros
- * - a fila de prioridade para saber quem se move
- * - o que está em cada casa
- *
- */
+int ultcost = 18;
+int healcost = 6;
 
-/**
- *
- * Um pequeno exemplo que mostra o que se pode fazer
- */
+
 void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
 {
-   
-	 
-	if(r == 0)
-	{ 	if(mapData[st->playerX + dx][st->playerY + dy] == 1 || mapData[st->playerX + dx][st->playerY + dy - 1] == 1)
+	if(mapData[st->playerX + dx][st->playerY + dy] == 1)
 		;
 
-     else if(mapData[st->playerX + dx][st->playerY + dy] != 8 && mapData[st->playerX + dx][st->playerY + dy - 1] != 8)
-	 {
-        mapData[st->playerX][st->playerY-1] = 0;
-		mapData[st->playerX][st->playerY+1] = 0;
-		st->playerX += dx;
-        st->playerY += dy;
-     }
-	}
-    else if (r == 1)
+    else
 	{
-	   if(mapData[st->playerX + dx][st->playerY + dy] == 1 || mapData[st->playerX + dx][st->playerY + dy + 1] == 1 ||mapData[st->playerX + dx][st->playerY + dy] == 8)
-		;
-
-     else if(mapData[st->playerX + dx][st->playerY + dy] != 8 && mapData[st->playerX + dx][st->playerY + dy + 1] != 8 )
-	 {
-        mapData[st->playerX][st->playerY-1] = 0;
-		mapData[st->playerX][st->playerY+1] = 0;
 		st->playerX += dx;
         st->playerY += dy;
-     }
-	}
+    }
 }
 
 MOBS mobs[15];
@@ -88,17 +54,15 @@ void mob_respawn(int mapData[LINES][COLS], MOBS mobs[15], STATE* st)
 				mobs[i].mobtype = 'e';
 				mobs[i].mobDMG = 1;
         		mobs[i].mobHP = 2;  	//cria os status para novo mob
-			if(rand() % 5 == 0)
-				mapData[mobs[i].mobX][mobs[i].mobY] = 5;	//chance de drop de item de cura
-			else
-				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			mapData[mobs[i].mobX][mobs[i].mobY] = 10;
 			do 
 			{
 				mobs[i].mobX = rand() % LINES;        
             	mobs[i].mobY = rand() % COLS;
         	}
 			while (mapData[mobs[i].mobX][mobs[i].mobY] != 0 ||sqrt(pow(mobs[i].mobX - st->playerX, 2) + pow(mobs[i].mobY - st->playerY, 2)) < 10);
-       		mapData[mobs[i].mobX][mobs[i].mobY] = 8;
+       		
+			mapData[mobs[i].mobX][mobs[i].mobY] = 8;
 		}
 	}
 
@@ -277,43 +241,60 @@ void mob_attack(STATE *st, MOBS mobs[15])
      int dx = mobs[i].mobX - st->playerX;            // abordagem todos os mobs e um bloco do jogador o conseguem atacar ao mesmo tempo.
      int dy = mobs[i].mobY - st->playerY;            // Da maneira atual no maximo o jogador leva 9 de dano por segundo se estiver rodeado por mobs.(LOPES)
      double distancia = sqrt(dx * dx + dy * dy);     
-     if (distancia <= sqrt(4)) 
+     if (distancia <= sqrt(8)) 		
 	 {
         st->playerHP -= mobs[i].mobDMG;
      }
     }
 }
 
-void player_attack(STATE *st, MOBS mobs[15],int mapData[LINES][COLS]) //-> Funcao que permite o player atacar mobs
-	//so acionado na tecla	|v
-	//da dano nas casas a volta dele apenas	|v
-	//muda os icons no mapa a volta para indicar ataque		(JOAO)
-	//passado algum delay reverte ao que era		<- estes os dois e que falta fazer
-	//quando um mob recebe dano fazer flash da sua cor para preto e devolta para vermelho tambem com a cena dos intervalos	|v
+void player_attack(STATE *st, MOBS mobs[15],int mapData[LINES][COLS])		//->SPACEBAR atk
 {
 		int i, j, k;
-	for (i = st->playerX-2; i <= st->playerX+2; i++)		
+	if (r == 1)
 	{
-		for (j = st->playerY-2; j <= st->playerY+2; j++)		//vem o quadrado a volta do jogador
+		for (i = st->playerX-1; i <= st->playerX+1; i++)		
 		{
-			for (k = 0; k < 15; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
+			for (j = st->playerY; j <= st->playerY+2; j++)		//a coluna do jogador e a coluna a sua direita
 			{
-				if (i == mobs[k].mobX && j == mobs[k].mobY)
+				for (k = 0; k < 15; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
 				{
-					//attron(COLOR_PAIR(COLOR_BLACK));
-					//mvaddch(i, j, 'e');
-					//attroff(COLOR_PAIR(COLOR_BLACK));		//flash inicial preto dos mobs
-                    mobs[k].mobHITS = 1;
-					mobs[k].mobHP-= st->playerDMG;	//retira a hp
-                   if(mapData[mobs[k].mobX + 1][mobs[k].mobY] != 1) mapData[mobs[k].mobX + 1][mobs[k].mobY] = 10;
-				   if(mapData[mobs[k].mobX + 1][mobs[k].mobY] != 1) mapData[mobs[k].mobX - 1][mobs[k].mobY] = 10;
-				   if(mapData[mobs[k].mobX + 1][mobs[k].mobY] != 1) mapData[mobs[k].mobX][mobs[k].mobY+1] = 10;
-				   if(mapData[mobs[k].mobX + 1][mobs[k].mobY] != 1) mapData[mobs[k].mobX][mobs[k].mobY-1] = 10;
-					//for(h = 0; h < 100000; h++)
-					//	;
-					//attron(COLOR_PAIR(COLOR_RED));
-					//mvaddch(i, j, 'e');
-					//attroff(COLOR_PAIR(COLOR_RED));		//passado delay, reverte a cor para vermelho
+					if (i == mobs[k].mobX && j == mobs[k].mobY)
+					{
+						mobs[k].mobHP-= st->playerDMG;	//retira a hp
+    	               	if(mapData[mobs[k].mobX + 1][mobs[k].mobY] == 0) 
+					   			mapData[mobs[k].mobX + 1][mobs[k].mobY] = 10;
+					   	if(mapData[mobs[k].mobX - 1][mobs[k].mobY] == 0) 
+					   			mapData[mobs[k].mobX - 1][mobs[k].mobY] = 10;
+					   	if(mapData[mobs[k].mobX][mobs[k].mobY+1] == 0) 
+					   			mapData[mobs[k].mobX][mobs[k].mobY+1] = 10;
+					   	if(mapData[mobs[k].mobX][mobs[k].mobY-1] == 0) 
+					   			mapData[mobs[k].mobX][mobs[k].mobY-1] = 10;		//spawn do sangue ao matar mob
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		for (i = st->playerX-1; i <= st->playerX+1; i++)		
+		{
+			for (j = st->playerY-2; j <= st->playerY; j++)		//a coluna do jogador e a coluna a sua esquerda
+			{
+				for (k = 0; k < 15; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
+				{
+					if (i == mobs[k].mobX && j == mobs[k].mobY)
+					{
+						mobs[k].mobHP-= st->playerDMG;	//retira a hp
+    	               	if(mapData[mobs[k].mobX + 1][mobs[k].mobY] == 0) 
+					   			mapData[mobs[k].mobX + 1][mobs[k].mobY] = 10;
+					   	if(mapData[mobs[k].mobX - 1][mobs[k].mobY] == 0) 
+					   			mapData[mobs[k].mobX - 1][mobs[k].mobY] = 10;
+					   	if(mapData[mobs[k].mobX][mobs[k].mobY+1] == 0) 
+					   			mapData[mobs[k].mobX][mobs[k].mobY+1] = 10;
+					   	if(mapData[mobs[k].mobX][mobs[k].mobY-1] == 0) 
+					   			mapData[mobs[k].mobX][mobs[k].mobY-1] = 10;		//spawn do sangue ao matar mob
+					}
 				}
 			}
 		}
@@ -330,7 +311,7 @@ void player_ulti(STATE *st, MOBS mobs[15], int mapData[LINES][COLS])
 
     if(distancia <= 5)
     {
-        mobs[i].mobHP -= 5;
+        mobs[i].mobHP -= st->playerDMG+5;		//dantes estava 5 fixo mas agora escala com os boosts que apanhas
     }
 
     for(int j = -5; j <= 5; j++)
@@ -342,7 +323,7 @@ void player_ulti(STATE *st, MOBS mobs[15], int mapData[LINES][COLS])
         {
           int x = st->playerX + j;
           int y = st->playerY + k;
-          if (x >= 0 && x < LINES && y >= 0 && y < COLS && mapData[x][y] != 1)
+          if (x >= 0 && x < LINES && y >= 0 && y < COLS && mapData[x][y] == 0)
           {
               mapData[x][y] = 11;
           }
@@ -362,43 +343,12 @@ void player_ulti(STATE *st, MOBS mobs[15], int mapData[LINES][COLS])
  }
 
  st->playerBLOOD = 0;
- 
-
 }
 
-
-void draw (int mapData[LINES][COLS])
-{
-		int i, j;
-	for (i = 0; i < LINES; i++)
-	{
-		for (j = 0; j < COLS; j++)
-		{
-				if(mapData[i][j] == 0)
-					mvaddch(i, j, '.');
-				if(mapData[i][j] == 1)
-					mvaddch(i, j, '#');
-				if(mapData[i][j] == 2)
-					mvaddch(i, j, '~');
-				if(mapData[i][j] == 6)
-				{
-					attron(COLOR_PAIR(COLOR_YELLOW));
-					mvaddch(i, j, 'h');
-					attroff(COLOR_PAIR(COLOR_YELLOW));
-				}
-				if(mapData[i][j] == 7)
-				{
-					attron(COLOR_PAIR(COLOR_YELLOW));
-                    mvaddch(i, j, 'd');
-					attroff(COLOR_PAIR(COLOR_YELLOW));
-                }
-		}
-	}
-}
 
 void ulti_clear(STATE *st, int mapData[LINES][COLS])
 {
-  if(uon == 1)
+  if(uon == 0)
   {
 	for(int i = 0 ; i < 20000; i++)
 	{
@@ -412,9 +362,9 @@ void ulti_clear(STATE *st, int mapData[LINES][COLS])
                 mapData[i][j] = 0;
         }
     }
-    uon = 0;
   }
 }
+
 
 void drawLight (int mapData[LINES][COLS], STATE *st)
 {
@@ -423,15 +373,15 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
 	{
         for (j = 0; j < COLS; j++)
 		{
-            // calculate the distance to the current cell from the player's position
+            //calculo a distancia (i,j) às coordenadas atuais do jogador
             int dy = j - st->playerY;
             int dx = i - st->playerX;
             int dist_squared = dx*dx + dy*dy;
 
-            // check if the current cell is within the player's field oulti_clear(&st,mapData);f view
+            //limita a visão do jogador a um raio de 20 casas
             if (dist_squared <= 400)
-			{  // use a radius of 20 cells
-                // perform a line-of-sight check from the player's position to the current cell
+			{
+                //usa-se a verificação LOS de Bresenham do jogador para a casa (i,j)
                 int visible = 1;
                 int y1 = st->playerY, x1 = st->playerX, y2 = j, x2 = i;
                 dy = abs(y2 - y1);
@@ -458,7 +408,7 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
 					}
                 }
 
-                // draw the appropriate character for the current cell
+                //agora imprime o que é suposto estar em cada casa de acordo com a tabela de interpretação do mapData
                 if (visible)
 				{
 					if (mapData[i][j] == 0)
@@ -516,9 +466,6 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
 }
 
 
-
-
-
 void update(STATE *st, int mapData[LINES][COLS])
 {
  
@@ -529,16 +476,25 @@ void update(STATE *st, int mapData[LINES][COLS])
 	switch(key)
 	{
 		case KEY_A1:
-			case '7': do_movement_action(st, -1, -1, mapData);
+			case '7':
+				aon = 0;
+				r = 0;
+				do_movement_action(st, -1, -1, mapData);
 				break;
 		case KEY_UP:
-			case '8': do_movement_action(st, -1, +0, mapData);
+			case '8':
+				aon = 0;
+				do_movement_action(st, -1, +0, mapData);
 				break;
 		case KEY_A3:
-			case '9': do_movement_action(st, -1, +1, mapData);
+			case '9':
+				aon = 0;
+				r = 1;
+				do_movement_action(st, -1, +1, mapData);
 				break;
 		case KEY_LEFT:
 			case '4': 
+				aon = 0;
 			    r = 0;
 				do_movement_action(st, +0, -1, mapData);
 				break;
@@ -547,34 +503,50 @@ void update(STATE *st, int mapData[LINES][COLS])
 				break;
 		case KEY_RIGHT:
 			case '6': 
+				aon = 0;
 				r = 1;
 				do_movement_action(st, +0, +1, mapData);
 			    break;
 		case KEY_C1:
 			case '1': 
+				aon = 0;
+				r = 0;
 				do_movement_action(st, +1, -1, mapData);
 				break;
 		case KEY_DOWN:
-			case '2': do_movement_action(st, +1, +0, mapData);
+			case '2': 
+				aon = 0;
+				do_movement_action(st, +1, +0, mapData);
 				break;
 		case KEY_C3:
-			case '3': do_movement_action(st, +1, +1, mapData);
+			case '3': 
+				aon = 0;
+				r = 1;
+				do_movement_action(st, +1, +1, mapData);
 				break;
 		case 'r':
 			st->playerX = 20;
 			st->playerY = 20;
 			break;		//reset para testes, TIRAR NA VERSÃO FINAL
-		case 'c':
+		case ' ':
+			aon = 0;
 			aon = 1;
 			player_attack(st, mobs, mapData);
 			break;
 		case 'x':
-             if(st->playerBLOOD == 10)
-			 {
-               player_ulti(st, mobs, mapData);
-			   uon = 1;
-			 }
-			 break;
+            if(st->playerBLOOD == ultcost)
+			{
+            	player_ulti(st, mobs, mapData);
+				uon = 1;
+			}
+			break;
+		case 'c':			//c cura agora :)
+            if(st->playerBLOOD >= healcost && st->playerHP < st->playerMAXHP)
+			{
+              	st->playerHP++;
+				st->playerBLOOD-= healcost;
+			}
+			break;
 		case 'q': 
 			endwin(); 
 			exit(0);
@@ -582,33 +554,38 @@ void update(STATE *st, int mapData[LINES][COLS])
 	}
   
 }
-	
-void drawplayer(STATE *st, int mapData[LINES][COLS])
+
+
+void drawplayer(STATE *st, int mapData[LINES][COLS])		//eu sei que o nome ta todo comido mas funcemina, e é mais simples
 {
 	attron(COLOR_PAIR(COLOR_YELLOW));
 	mvaddch(st->playerX, st->playerY, '@' | A_BOLD);
-	if(r == 1 && aon == 0 && mapData[st->playerX][st->playerY+1] != 8)  // acrescentei uma espada ao jogador ('|') (LOPES)
+	if (aon == 1)
 	{
-      mapData[st->playerX][st->playerY+1] = 9;
-	  mvaddch(st->playerX, st->playerY+1, '|' | A_BOLD); 
+		if (r == 1)
+		{
+			if (mapData[st->playerX][st->playerY+1] != 1)
+				mvaddch(st->playerX, st->playerY+1, '_' | A_BOLD);
+		}
+		else
+		{	
+			if (mapData[st->playerX][st->playerY-1] != 1)
+				mvaddch(st->playerX, st->playerY-1, '_' | A_BOLD);
+		}
 	}
-	if(r == 0 && aon == 0 && mapData[st->playerX][st->playerY-1] != 8) 
+	else
 	{
-      mapData[st->playerX][st->playerY-1] = 9;
-	  mvaddch(st->playerX, st->playerY-1, '|' | A_BOLD);
+		if (r == 1)
+		{
+			if (mapData[st->playerX][st->playerY+1] != 1)
+				mvaddch(st->playerX, st->playerY+1, '/' | A_BOLD);
+		}
+		else
+		{	
+			if (mapData[st->playerX][st->playerY-1] != 1)
+				mvaddch(st->playerX, st->playerY-1, '\\' | A_BOLD);
+		}
 	}
-	if(r == 1 && aon == 1 && mapData[st->playerX][st->playerY+1] != 8) 
-	{
-      mapData[st->playerX][st->playerY+1] = 9;
-	  mvaddch(st->playerX, st->playerY+1, '/' | A_BOLD);
-	  mvaddch(st->playerX, st->playerY+1, '_' | A_BOLD);                           // a espada vai para baixo quando o jogador ataca (LOPES)
-	}   
-	if(r == 0 && aon == 1 && mapData[st->playerX][st->playerY-1] != 8)
-	{
-      mapData[st->playerX][st->playerY-1] = 9;
-	  mvaddch(st->playerX, st->playerY-1, '\\' | A_BOLD);
-	  mvaddch(st->playerX, st->playerY-1, '_' | A_BOLD);
-	} 
 	attroff(COLOR_PAIR(COLOR_YELLOW));
 }
 
@@ -637,58 +614,40 @@ void drawDMG(STATE *st)
 
 void drawBLOOD(STATE *st)
 {
-	int x, y;
+	int start = (COLS/2 - 8);
 	
-	getmaxyx(stdscr, x, y);
-	
-	int start = (y/2 - 8);
-	
-	mvaddstr(0, start, "BLOOD ACQUIRED:");
+	mvaddstr(0, start, "BLOOD ACQUIRED");
 	
 	for(int i = 0; i < st->playerBLOOD; i++)
 	{
-	 attron(COLOR_PAIR(COLOR_RED));
-	 mvaddstr(1, y/2 - 10 + i, "|");
-	 attroff(COLOR_PAIR(COLOR_RED));
+		attron(COLOR_PAIR(COLOR_RED));
+		mvaddstr(1, COLS/2 - 10 + i, "|");
+		attroff(COLOR_PAIR(COLOR_RED));
 	}
-   if(st->playerBLOOD == 10)
-   {
-	mvaddstr(0, y/2 + 10, "ULTI -> X");
-   }
+   	if(st->playerBLOOD >= healcost && st->playerHP < st->playerMAXHP)
+		mvaddstr(0, COLS/2 - 20, "C <- HEAL");
+   	if(st->playerBLOOD == ultcost)
+   	{
+		mvaddstr(0, COLS/2 + 9, "ULTI -> X");
+   	}
 }
 
-void itemcollect(STATE *st, int mapData[LINES][COLS])
-{
-	if(mapData[st->playerX][st->playerY] == 5 || mapData[st->playerX][st->playerY + 2] == 5 || mapData[st->playerX][st->playerY - 2] == 5)
+void itemcollect(STATE *st, int mapData[LINES][COLS])		//só o player e que apanha itens, mesmo a espada estando por cima, ela n apanha
+{	
+	if(mapData[st->playerX][st->playerY] == 6)
 	{
-	   if(st->playerHP < 20)	st->playerHP++;
-	   if(mapData[st->playerX][st->playerY] == 5) mapData[st->playerX][st->playerY] = 0;
-	   if(mapData[st->playerX][st->playerY + 2] == 5) mapData[st->playerX][st->playerY + 2] = 0;
-	   if(mapData[st->playerX][st->playerY - 2] == 5) mapData[st->playerX][st->playerY - 2] = 0;
-	}	
-	if(mapData[st->playerX][st->playerY] == 6 || mapData[st->playerX][st->playerY + 2] == 6 || mapData[st->playerX][st->playerY - 2] == 6)
-	{
-		
-		if(st->playerHP < 20)st->playerHP++;
-	    if(mapData[st->playerX][st->playerY] == 6) mapData[st->playerX][st->playerY] = 0;
-	    if(mapData[st->playerX][st->playerY + 2] == 6) mapData[st->playerX][st->playerY + 2] = 0;
-	    if(mapData[st->playerX][st->playerY - 2] == 6) mapData[st->playerX][st->playerY - 2] = 0;
+		st->playerMAXHP++;
+		mapData[st->playerX][st->playerY] = 0;
 	}
-	if(mapData[st->playerX][st->playerY] == 7 || mapData[st->playerX][st->playerY + 2] == 7 || mapData[st->playerX][st->playerY - 2] == 7)
+	if(mapData[st->playerX][st->playerY] == 7)
 	{
 		st->playerDMG++;
 		mapData[st->playerX][st->playerY] = 0;
-	    if(mapData[st->playerX][st->playerY] == 7) mapData[st->playerX][st->playerY] = 0;
-	    if(mapData[st->playerX][st->playerY + 2] == 7) mapData[st->playerX][st->playerY + 2] = 0;
-	    if(mapData[st->playerX][st->playerY - 2] == 7) mapData[st->playerX][st->playerY - 2] = 0;
 	}
-    if(mapData[st->playerX][st->playerY] == 10 || mapData[st->playerX][st->playerY + 2] == 10 || mapData[st->playerX][st->playerY - 2] == 10)
+    if(mapData[st->playerX][st->playerY] == 10 && st->playerBLOOD < ultcost)
     {
-	    if(st->playerBLOOD < 10) st->playerBLOOD++;
+	    st->playerBLOOD++;
 		mapData[st->playerX][st->playerY] = 0;
-	    if(mapData[st->playerX][st->playerY] == 10) mapData[st->playerX][st->playerY] = 0;
-	    if(mapData[st->playerX][st->playerY + 2] == 10) mapData[st->playerX][st->playerY + 2] = 0;
-	    if(mapData[st->playerX][st->playerY - 2] == 10) mapData[st->playerX][st->playerY - 2] = 0;
 	}
 
 }
@@ -733,7 +692,8 @@ int main()
 	 drawDMG(&st);
 	 itemcollect(&st, mapData);
 	 update(&st,mapData);
-	 mob_respawn(mapData, mobs, &st);                    
+	 mob_respawn(mapData, mobs, &st);
+	 ulti_clear(&st, mapData);                    
 	 refresh();
 	 move(LINES - 1, 0);
 	 i++;
@@ -743,6 +703,7 @@ int main()
 	 if(atime == 10000)           
 	 {
 		aon = 0;
+		uon = 0;
 		atime = 0;
 	 }
 	 if(s == 12000) // 13500 voltas = +/- 1 segundo --> Ou seja o jogador leva 1 de dano a cada segundo. (LOPES)
@@ -761,16 +722,11 @@ int main()
 }
 
 /* Coisas a fazer:
- 
- 
- Corrigir a velocidade dos mobs.(Diminuir a velocidade de perseguicao para algo possivel de se sobreviver. Definir uma velocidade de vaguemento menor que a de perseguicao.)
-	-> epah para mim a velocidade deles estava ok, mas achei estranho terem de estar mesmo em cima do player para atacar -> Resolvido (lopes)(joao)
- Corrigir os buffs do player.		<- explica? -> Tipo se o jogador recebe um buff de dano , fazer com que de efetivamente mais dano.
+ corrigir o custo do ulti porque acho que esta muito baixo (joao)
  Criar um sistema de game over para qnd o player morre. 
 
  Se houver tempo:
 
- animações de ataque para o jogador e animação de receber dano dos mobs
  Acrescentar novos mobs
  Acrescentar novas salas -- a boss estelita ira acontecer (joao)
 e tc

@@ -17,14 +17,13 @@ codigo de matriz para armazenar as informações do mapa
     1 -> parede '#';
     2 -> espaço de dano ambiental (lava, veneno,...) '~';
 
-    3 -> espaço de dano do jogador (sem display);
-    4 -> espaço de dano do inimigo (sem display);   >>> estes dois nao sei se se manterão, acho que apenas utilizarei raio da coordenada de cada para determinar dano
 
-    5 -> item de cura, restaura 1HP ao jogador '+';
     6 -> item que aumenta playerMAXHP por 1 'h';
     7 -> item que aumenta playerDMG por 1 'd';
     8 -> mobs
-    9 -> *
+
+    10 -> sangue
+    11 -> efeito do ulti do jogador
 */
 
 void gerar(int mapData[LINES][COLS])
