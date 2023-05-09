@@ -16,6 +16,7 @@
 
 int r = 0;
 int aon = 0;
+int uon = 0;
 
 /**
  *
@@ -62,10 +63,10 @@ void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
 	}
 }
 
-MOBS mobs[5];
-void mob_spawn(int mapData[LINES][COLS], MOBS mobs[5])
+MOBS mobs[15];
+void mob_spawn(int mapData[LINES][COLS], MOBS mobs[15])
 {
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 15; i++) {
 	    mobs[i].mobtype = 'e';
 		mobs[i].mobDMG = 1;
         mobs[i].mobHP = 2;                                       //Esta funcao spawna os mobs random
@@ -77,10 +78,10 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[5])
 	}
 }
 
-void mob_respawn(int mapData[LINES][COLS], MOBS mobs[5], STATE* st)
+void mob_respawn(int mapData[LINES][COLS], MOBS mobs[15], STATE* st)
 {
 		int i;
-	for(i = 0; i < 5; i++)
+	for(i = 0; i < 15; i++)
 	{
 		if(mobs[i].mobHP <= 0)
 		{
@@ -105,9 +106,9 @@ void mob_respawn(int mapData[LINES][COLS], MOBS mobs[5], STATE* st)
 }
 
 
-void mob_movement(int mapData[LINES][COLS], MOBS mobs[5], int playerX, int playerY)
+void mob_movement(int mapData[LINES][COLS], MOBS mobs[15], int playerX, int playerY)
 {
-  for(int i = 0; i < 5; i++)
+  for(int i = 0; i < 15; i++)
   {
     int dx = mobs[i].mobX - playerX;
     int dy = mobs[i].mobY - playerY;
@@ -269,9 +270,9 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[5], int playerX, int playe
   }
 }
 
-void mob_attack(STATE *st, MOBS mobs[5]) 
+void mob_attack(STATE *st, MOBS mobs[15]) 
 {
-    for (int i = 0; i < 5; i++)                      // Esta funcao e respondavel por retirar hp do jogador													 
+    for (int i = 0; i < 15; i++)                      // Esta funcao e respondavel por retirar hp do jogador													 
 	{                                                // quando um mob se encontra perto. Mas com esta 
      int dx = mobs[i].mobX - st->playerX;            // abordagem todos os mobs e um bloco do jogador o conseguem atacar ao mesmo tempo.
      int dy = mobs[i].mobY - st->playerY;            // Da maneira atual no maximo o jogador leva 9 de dano por segundo se estiver rodeado por mobs.(LOPES)
@@ -283,7 +284,7 @@ void mob_attack(STATE *st, MOBS mobs[5])
     }
 }
 
-void player_attack(STATE *st, MOBS mobs[5],int mapData[LINES][COLS]) //-> Funcao que permite o player atacar mobs
+void player_attack(STATE *st, MOBS mobs[15],int mapData[LINES][COLS]) //-> Funcao que permite o player atacar mobs
 	//so acionado na tecla	|v
 	//da dano nas casas a volta dele apenas	|v
 	//muda os icons no mapa a volta para indicar ataque		(JOAO)
@@ -295,7 +296,7 @@ void player_attack(STATE *st, MOBS mobs[5],int mapData[LINES][COLS]) //-> Funcao
 	{
 		for (j = st->playerY-2; j <= st->playerY+2; j++)		//vem o quadrado a volta do jogador
 		{
-			for (k = 0; k < 5; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
+			for (k = 0; k < 15; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
 			{
 				if (i == mobs[k].mobX && j == mobs[k].mobY)
 				{
@@ -304,10 +305,10 @@ void player_attack(STATE *st, MOBS mobs[5],int mapData[LINES][COLS]) //-> Funcao
 					//attroff(COLOR_PAIR(COLOR_BLACK));		//flash inicial preto dos mobs
                     mobs[k].mobHITS = 1;
 					mobs[k].mobHP-= st->playerDMG;	//retira a hp
-                    mapData[mobs[k].mobX + 1][mobs[k].mobY] = 10;
-				    mapData[mobs[k].mobX - 1][mobs[k].mobY] = 10;
-				    mapData[mobs[k].mobX][mobs[k].mobY+1] = 10;
-				    mapData[mobs[k].mobX][mobs[k].mobY-1] = 10;
+                   if(mapData[mobs[k].mobX + 1][mobs[k].mobY] != 1) mapData[mobs[k].mobX + 1][mobs[k].mobY] = 10;
+				   if(mapData[mobs[k].mobX + 1][mobs[k].mobY] != 1) mapData[mobs[k].mobX - 1][mobs[k].mobY] = 10;
+				   if(mapData[mobs[k].mobX + 1][mobs[k].mobY] != 1) mapData[mobs[k].mobX][mobs[k].mobY+1] = 10;
+				   if(mapData[mobs[k].mobX + 1][mobs[k].mobY] != 1) mapData[mobs[k].mobX][mobs[k].mobY-1] = 10;
 					//for(h = 0; h < 100000; h++)
 					//	;
 					//attron(COLOR_PAIR(COLOR_RED));
@@ -318,6 +319,53 @@ void player_attack(STATE *st, MOBS mobs[5],int mapData[LINES][COLS]) //-> Funcao
 		}
 	}
 }
+
+void player_ulti(STATE *st, MOBS mobs[15], int mapData[LINES][COLS])
+{ 
+  for(int i = 0; i < 15; i++)
+  {
+    int dx = mobs[i].mobX - st->playerX;
+    int dy = mobs[i].mobY - st->playerY;
+    double distancia = sqrt(dx * dx + dy * dy);
+
+    if(distancia <= 5)
+    {
+        mobs[i].mobHP -= 5;
+    }
+
+    for(int j = -5; j <= 5; j++)
+    {
+      for(int k = -5; k <= 5; k++)
+      {
+        int distanciacentro= sqrt(j*j + k*k);
+        if (distanciacentro <= 5)
+        {
+          int x = st->playerX + j;
+          int y = st->playerY + k;
+          if (x >= 0 && x < LINES && y >= 0 && y < COLS && mapData[x][y] != 1)
+          {
+              mapData[x][y] = 11;
+          }
+        }
+      }
+    }
+    for (int i = st->playerX - 5; i <= st->playerX + 5; i++)
+    {
+        for (int j = st->playerY - 5; j <= st->playerY + 5; j++)
+        {
+            attron(COLOR_PAIR(COLOR_CYAN));
+			mvaddch(i, j, '*');
+            attroff(COLOR_PAIR(COLOR_CYAN));
+	    } 
+    }
+ 
+ }
+
+ st->playerBLOOD = 0;
+ 
+
+}
+
 
 void draw (int mapData[LINES][COLS])
 {
@@ -348,20 +396,25 @@ void draw (int mapData[LINES][COLS])
 	}
 }
 
-void reset_blood(MOBS mobs[5],int mapData[LINES][COLS])
+void ulti_clear(STATE *st, int mapData[LINES][COLS])
 {
-	for(int i = 0; i < 5; i++)
+  if(uon == 1)
+  {
+	for(int i = 0 ; i < 20000; i++)
 	{
-	  if(mobs[i].mobHITS == 1)
-	  {
-		mapData[mobs[i].mobX + 1][mobs[i].mobY] = 0;
-	    mapData[mobs[i].mobX - 1][mobs[i].mobY] = 0;
-	    mapData[mobs[i].mobX][mobs[i].mobY+1] = 0;
-	    mapData[mobs[i].mobX][mobs[i].mobY-1] = 0;
-	  }
+		
 	}
+	for (int i = st->playerX - 5; i <= st->playerX + 5; i++)
+    {
+        for (int j = st->playerY - 5; j <= st->playerY + 5; j++)
+        {
+            if (mapData[i][j] == 11)
+                mapData[i][j] = 0;
+        }
+    }
+    uon = 0;
+  }
 }
-
 
 void drawLight (int mapData[LINES][COLS], STATE *st)
 {
@@ -375,7 +428,7 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
             int dx = i - st->playerX;
             int dist_squared = dx*dx + dy*dy;
 
-            // check if the current cell is within the player's field of view
+            // check if the current cell is within the player's field oulti_clear(&st,mapData);f view
             if (dist_squared <= 400)
 			{  // use a radius of 20 cells
                 // perform a line-of-sight check from the player's position to the current cell
@@ -446,6 +499,7 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
 						mvaddch(i, j, '*');
 					    attroff(COLOR_PAIR(COLOR_RED));
 					}
+				 
 				} 
 				else
 				{
@@ -458,7 +512,10 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
             }
         }
     }
+   
 }
+
+
 
 
 
@@ -490,11 +547,12 @@ void update(STATE *st, int mapData[LINES][COLS])
 				break;
 		case KEY_RIGHT:
 			case '6': 
-			    r = 1;
+				r = 1;
 				do_movement_action(st, +0, +1, mapData);
 			    break;
 		case KEY_C1:
-			case '1': do_movement_action(st, +1, -1, mapData);
+			case '1': 
+				do_movement_action(st, +1, -1, mapData);
 				break;
 		case KEY_DOWN:
 			case '2': do_movement_action(st, +1, +0, mapData);
@@ -510,6 +568,13 @@ void update(STATE *st, int mapData[LINES][COLS])
 			aon = 1;
 			player_attack(st, mobs, mapData);
 			break;
+		case 'x':
+             if(st->playerBLOOD == 10)
+			 {
+               player_ulti(st, mobs, mapData);
+			   uon = 1;
+			 }
+			 break;
 		case 'q': 
 			endwin(); 
 			exit(0);
@@ -564,10 +629,32 @@ void drawHP(STATE *st)
 
 void drawDMG(STATE *st)
 {
-		int i;
-	mvaddstr(0, 0, "DMG BOOST:");	//usa os primeiros 3 indices
-	for (i = 0; i < st->playerDMG-1; i++)
-		mvaddstr(0, 11+i, ">");
+	   int i;
+	   mvaddstr(0, 0, "DMG BOOST:");	//usa os primeiros 3 indices
+	   for (i = 0; i < st->playerDMG-1; i++)
+	   mvaddstr(0, 11+i, ">");
+}
+
+void drawBLOOD(STATE *st)
+{
+	int x, y;
+	
+	getmaxyx(stdscr, x, y);
+	
+	int start = (y/2 - 8);
+	
+	mvaddstr(0, start, "BLOOD ACQUIRED:");
+	
+	for(int i = 0; i < st->playerBLOOD; i++)
+	{
+	 attron(COLOR_PAIR(COLOR_RED));
+	 mvaddstr(1, y/2 - 10 + i, "|");
+	 attroff(COLOR_PAIR(COLOR_RED));
+	}
+   if(st->playerBLOOD == 10)
+   {
+	mvaddstr(0, y/2 + 10, "ULTI -> X");
+   }
 }
 
 void itemcollect(STATE *st, int mapData[LINES][COLS])
@@ -595,6 +682,15 @@ void itemcollect(STATE *st, int mapData[LINES][COLS])
 	    if(mapData[st->playerX][st->playerY + 2] == 7) mapData[st->playerX][st->playerY + 2] = 0;
 	    if(mapData[st->playerX][st->playerY - 2] == 7) mapData[st->playerX][st->playerY - 2] = 0;
 	}
+    if(mapData[st->playerX][st->playerY] == 10 || mapData[st->playerX][st->playerY + 2] == 10 || mapData[st->playerX][st->playerY - 2] == 10)
+    {
+	    if(st->playerBLOOD < 10) st->playerBLOOD++;
+		mapData[st->playerX][st->playerY] = 0;
+	    if(mapData[st->playerX][st->playerY] == 10) mapData[st->playerX][st->playerY] = 0;
+	    if(mapData[st->playerX][st->playerY + 2] == 10) mapData[st->playerX][st->playerY + 2] = 0;
+	    if(mapData[st->playerX][st->playerY - 2] == 10) mapData[st->playerX][st->playerY - 2] = 0;
+	}
+
 }
                                                             
 
@@ -613,6 +709,7 @@ int main()
 	intrflush(stdscr, false);
 	keypad(stdscr, true);
 
+	init_pair(COLOR_CYAN,COLOR_CYAN,COLOR_BLUE);
 	init_pair(COLOR_MAGENTA,COLOR_MAGENTA,COLOR_BLACK );
 	init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
     init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
@@ -622,18 +719,17 @@ int main()
 	gerar(mapData);
     mob_spawn(mapData, mobs);
 	
-	STATE st = {20,20,20,20,1};			//coordenada 20,20, começa com 3HP atual, 3HP max e 1DMG inicial                                    
+	STATE st = {20,20,20,20,1,0};			//coordenada 20,20, começa com 20HP atual, 20HP max e 1DMG inicial, 0 de blood                                    
 	int i = 0;                          // alterei o hp do player para 20 para ser mais facil definir o dano dos mobs. Se o player tivesse de hp 3, ia ter de por o dano dos mobs decimal                       // caso contrario o mobs matava o player em 3 ataques o que imensamente rapido oq ue significava alterar todas as funcoes de int para float e nao me apetecia.
     int s = 0;                          // (LOPES)                                  
     int atime = 0;
-
 	while (true) 
 	{
 	 //if(st.playerHP == 0) break;         se ativarmos o if comentado quando o player morre o jogo fecha.
-	 reset_blood(mobs, mapData);
-	 drawLight(mapData, &st);             //mas essa maneira e um bocado merda, estou a trabalhar numa forma
+	 drawLight(mapData, &st);            //mas essa maneira e um bocado merda, estou a trabalhar numa forma
 	 drawplayer(&st,mapData);                     // de quando o jogador morrer aparece gameover  e 2s depois o jogo reinicia
 	 drawHP(&st);                         // com um novo mapa e tudo novo. (LOPES)
+	 drawBLOOD(&st);
 	 drawDMG(&st);
 	 itemcollect(&st, mapData);
 	 update(&st,mapData);
@@ -679,7 +775,7 @@ int main()
  Acrescentar novas salas -- a boss estelita ira acontecer (joao)
 e tc
 
-Cenas que acho melhor alterar:
+q
 
 
 
