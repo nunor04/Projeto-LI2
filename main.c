@@ -13,7 +13,7 @@ int r = 0;
 int aon = 0;
 int uon = 0;
 int atime2 = 0;
-
+int grito = 0;
 int ultcost = 18;
 int healcost = 6;
 
@@ -30,20 +30,21 @@ void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
     }
 }
 
-MOBS mobs[30];
-void mob_spawn(int mapData[LINES][COLS], MOBS mobs[30])
+MOBS mobs[40];
+void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
 {
-    for (int i = 0; i < 30; i++) {
-	   if(rand() % 3 == 0)
+    for (int i = 0; i < 40; i++) {
+	   int rnd = rand() % 6;
+	   if(rnd == 0 || rnd == 1 || rnd == 2 || rnd == 3 || rnd == 4)
 	   { 
 		mobs[i].mobtype = 'e';
 		mobs[i].mobDMG = 1;
         mobs[i].mobHP = 3;                                       //Esta funcao spawna os mobs random
 	   }
-	   else if(rand() % 3  == 1) 
+	   else if(rnd  == 5) 
 	   {
 		mobs[i].mobtype = 'c';
-		mobs[i].mobDMG = 1;
+		mobs[i].mobDMG = 1;   // 25% de chance de spawnar uma cobarde
         mobs[i].mobHP = 1;
 	   }
 		do {                                                     //mas sinto que 5 é demasiado pouco (joao)
@@ -56,10 +57,10 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[30])
 	}
 }
 
-void mob_respawn(int mapData[LINES][COLS], MOBS mobs[30], STATE* st)
+void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st)
 {
 		int i;
-	for(i = 0; i < 30; i++)
+	for(i = 0; i < 40; i++)
 	{
 		if(mobs[i].mobHP <= 0)
 		{
@@ -91,18 +92,19 @@ void mob_respawn(int mapData[LINES][COLS], MOBS mobs[30], STATE* st)
 }
 
 
-void mob_movement(int mapData[LINES][COLS], MOBS mobs[30], int playerX, int playerY)
+void mob_movement(int mapData[LINES][COLS], MOBS mobs[40], int playerX, int playerY)
 {
-  for(int i = 0; i < 30; i++)
+  
+  for(int i = 0; i < 40; i++)
   {
     int dx = mobs[i].mobX - playerX;
     int dy = mobs[i].mobY - playerY;
     double dist_squared = sqrt(dx*dx + dy*dy);
 
-    if(dist_squared < 12)
+    if(dist_squared < 12 || grito == 1)
     {
-	 
-      int x = mobs[i].mobX;
+	
+	  int x = mobs[i].mobX;
       int y = mobs[i].mobY;
       int sx = dx > 0 ? -1 : 1;
       int sy = dy > 0 ? -1 : 1;
@@ -129,27 +131,27 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[30], int playerX, int play
         x += sx;
       }
 
-      if(wallFound == 1)
+      if(wallFound == 1 && (grito == 0 || dist_squared > 30))
       {
         
         int s = rand() % 4;
 
-        if(s == 0 && mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0)
+        if(s == 0 && (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10))
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobY--;
         }
-        else if(s == 1 && mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0)
+        else if(s == 1 && (mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10))
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobX++;
         }
-        else if(s == 2 && mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0)
+        else if(s == 2 && (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10))
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobY++;
         }
-        else if(s == 3 && mapData[mobs[i].mobX -1][mobs[i].mobY] == 0)
+        else if(s == 3 && (mapData[mobs[i].mobX -1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX -1][mobs[i].mobY] == 10))
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobX--;
@@ -158,26 +160,26 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[30], int playerX, int play
         if(mobs[i].mobtype == 'e')mapData[mobs[i].mobX][mobs[i].mobY] = 8;
 	    else if(mobs[i].mobtype == 'c')mapData[mobs[i].mobX][mobs[i].mobY] = 12;	
 		
-      }
+    }
       else
 	  {
 	   if(mobs[i].mobtype == 'e')
 	   {
 		if(mobs[i].mobX > playerX)
 		{
-			if(mobs[i].mobY > playerY && mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 0)
+			if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 10))
 			{
 			  if(mobs[i].mobX > playerX + 1 || mobs[i].mobY > playerY + 2) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 			  if(mobs[i].mobX > playerX + 1) mobs[i].mobX--;
 			  if(mobs[i].mobY > playerY + 2) mobs[i].mobY--;                                                             // Os mobs agora ja nao vao para a mesma casa do player.
 			}                                                                                                            // Mas agora que penso bastava so dar um numero para o player no mapData
-		    else if(mobs[i].mobY < playerY && mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 0)                          // e a funcao ja funcionava nao tinha the acrescentar aqueles ifs todos
+		    else if(mobs[i].mobY < playerY && (mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 10))                          // e a funcao ja funcionava nao tinha the acrescentar aqueles ifs todos
 		    {                                                                                                            // Se alguem quiser fazer esse pequeno upgrade eu agradecia(LOPES)
 			  if(mobs[i].mobY < playerY - 2 || mobs[i].mobX > playerX + 1) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 			  if(mobs[i].mobX > playerX + 1) mobs[i].mobX--;
 			  if(mobs[i].mobY < playerY - 2)mobs[i].mobY++;
 		    }
-		   else if(mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0)
+		   else if((mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY] == 10))
 		   {
              if(mobs[i].mobX > playerX + 1)
 			 {
@@ -188,19 +190,19 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[30], int playerX, int play
 		}
 	    else if(mobs[i].mobX < playerX)
 		{
-			if(mobs[i].mobY > playerY && mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 0)
+			if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 10))
 			{
 			 if(mobs[i].mobX < playerX - 1 || mobs[i].mobY > playerY + 2) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 			 if(mobs[i].mobX < playerX - 1) mobs[i].mobX++;
 			 if( mobs[i].mobY > playerY + 2) mobs[i].mobY--;
 			}
-		    else if(mobs[i].mobY < playerY  && mapData[mobs[i].mobX + 1][mobs[i].mobY + 2] == 0)
+		    else if(mobs[i].mobY < playerY  && (mapData[mobs[i].mobX + 1][mobs[i].mobY + 2] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY + 2] == 10))
 		    {
 			  if(mobs[i].mobY < playerY - 2|| mobs[i].mobX < playerX + 1)  mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 			  if(mobs[i].mobX < playerX + 1) mobs[i].mobX++;
 			  if(mobs[i].mobY < playerY - 2 ) mobs[i].mobY++;
 		    }
-		   else if(mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0)
+		   else if((mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10))
 		   {
              if(mobs[i].mobX < playerX - 1) 
 			 {
@@ -211,12 +213,12 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[30], int playerX, int play
 		}
 	    else if(mobs[i].mobX == playerX)
 		{
-			if(mobs[i].mobY > playerY + 2 && mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0)
+			if(mobs[i].mobY > playerY + 2 && (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10))
 			{
 				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 				mobs[i].mobY--;
 			}
-		    else if(mobs[i].mobY < playerY - 2 && mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0)
+		    else if(mobs[i].mobY < playerY - 2 && (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10))
 		    {
 			    mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 				mobs[i].mobY++;
@@ -230,71 +232,165 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[30], int playerX, int play
 	   }
 	   else if(mobs[i].mobtype == 'c')
 	   {
-		 if(mobs[i].mobX > playerX)
-		 {
-			if(mobs[i].mobY > playerY && mapData[mobs[i].mobX + 1][mobs[i].mobY + 1] == 0)
+		   grito = 1;
+		   int nmobs = 0;
+		   for(int j = -10; j <= 10; j++)
+           {
+              for(int k = -10; k <= 10; k++)
+              {
+                int distanciacentro= sqrt(j*j + k*k);
+                if (distanciacentro <= 10)
+                {
+                 int x = mobs[i].mobX + j;
+                 int y = mobs[i].mobY + k;
+                 
+				 if(mapData[x][y] == 8 || mapData[x][y] == 12) nmobs++;
+                }
+              }
+           }    
+		 if(nmobs < 3 || (grito == 1 && dist_squared > 30)) 
+	   	 {	
+		    if(mobs[i].mobX > playerX)
 			{
-			  if(mobs[i].mobX > playerX || mobs[i].mobY > playerY) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			  if(mobs[i].mobX > playerX ) mobs[i].mobX++;
-			  if(mobs[i].mobY > playerY ) mobs[i].mobY++;                                                             // Os mobs agora ja nao vao para a mesma casa do player.
-			}                                                                                                            // Mas agora que penso bastava so dar um numero para o player no mapData
-		    else if(mobs[i].mobY < playerY && mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 0)                          // e a funcao ja funcionava nao tinha the acrescentar aqueles ifs todos
-		    {                                                                                                            // Se alguem quiser fazer esse pequeno upgrade eu agradecia(LOPES)
-			  if(mobs[i].mobY < playerY  || mobs[i].mobX > playerX ) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			  if(mobs[i].mobX > playerX ) mobs[i].mobX++;
-			  if(mobs[i].mobY < playerY )mobs[i].mobY--;
-		    }
-		   else if(mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0)
-		   {
-             if(mobs[i].mobX > playerX )
-			 {
-               mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			   mobs[i].mobX++;
-			 } 
-		   }
-		 }
-	     else if(mobs[i].mobX < playerX)
-		 { 
-			if(mobs[i].mobY > playerY && mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 0)
+				if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX + 1][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY + 1] == 10))
+				{
+				if(mobs[i].mobX > playerX || mobs[i].mobY > playerY) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				if(mobs[i].mobX > playerX ) mobs[i].mobX++;
+				if(mobs[i].mobY > playerY ) mobs[i].mobY++;                                                             // Os mobs agora ja nao vao para a mesma casa do player.
+				}                                                                                                             // Mas agora que penso bastava so dar um numero para o player no mapData
+				else if(mobs[i].mobY < playerY && (mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 10))                          // e a funcao ja funcionava nao tinha the acrescentar aqueles ifs todos
+				{                                                                                                            // Se alguem quiser fazer esse pequeno upgrade eu agradecia(LOPES)
+				if(mobs[i].mobY < playerY  || mobs[i].mobX > playerX ) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				if(mobs[i].mobX > playerX ) mobs[i].mobX++;
+				if(mobs[i].mobY < playerY )mobs[i].mobY--;
+				}
+			else if(mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10)
 			{
-			 if(mobs[i].mobX < playerX || mobs[i].mobY > playerY) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			 if(mobs[i].mobX < playerX ) mobs[i].mobX--;
-			 if( mobs[i].mobY > playerY ) mobs[i].mobY++;
+				if(mobs[i].mobX > playerX )
+				{
+				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				mobs[i].mobX++;
+				if(rand() % 2 == 0) mobs[i].mobY++;
+				else if(rand() % 2 == 1) mobs[i].mobY--;
+				} 
 			}
-		    else if(mobs[i].mobY < playerY  && mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 0)
-		    {
-			  if(mobs[i].mobY < playerY || mobs[i].mobX < playerX )  mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			  if(mobs[i].mobX < playerX ) mobs[i].mobX--;
-			  if(mobs[i].mobY < playerY ) mobs[i].mobY--;
-		    }
-		   else if(mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0)
+			}
+			else if(mobs[i].mobX < playerX)
+			{ 
+				if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 10))
+				{
+				if(mobs[i].mobX < playerX || mobs[i].mobY > playerY) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				if(mobs[i].mobX < playerX ) mobs[i].mobX--;
+				if( mobs[i].mobY > playerY ) mobs[i].mobY++;
+				}
+				else if(mobs[i].mobY < playerY  && (mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 10) )
+				{
+				if(mobs[i].mobY < playerY || mobs[i].mobX < playerX )  mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				if(mobs[i].mobX < playerX ) mobs[i].mobX--;
+				if(mobs[i].mobY < playerY ) mobs[i].mobY--;
+				}
+			else if(mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY] == 10)
+			{
+				if(mobs[i].mobX < playerX) 
+				{
+				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				mobs[i].mobX--;
+				if(rand() % 2 == 0) mobs[i].mobY++;
+				else if(rand() % 2 == 1) mobs[i].mobY--;
+				}  
+			}
+			}
+			else if(mobs[i].mobX == playerX)
+			{
+				if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10) )
+				{
+					mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+					mobs[i].mobY++;
+					if(rand() % 2 == 0) mobs[i].mobX++;
+					else if(rand() % 2 == 1) mobs[i].mobX--;
+				}
+				else if(mobs[i].mobY < playerY  && (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10))
+				{
+					mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+					mobs[i].mobY--;
+					if(rand() % 2 == 0) mobs[i].mobX++;
+					else if(rand() % 2 == 1) mobs[i].mobX--;
+				}
+			else if(mapData[mobs[i].mobX][mobs[i].mobY] == 0)
+			{
+				continue;
+			}
+			}
+			mapData[mobs[i].mobX][mobs[i].mobY] = 12;
+		 }
+		 else
+		 {
+		   if(mobs[i].mobX > playerX)
 		   {
-             if(mobs[i].mobX < playerX) 
+			if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 10))
+			{
+			  if(mobs[i].mobX > playerX + 1 || mobs[i].mobY > playerY + 2) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			  if(mobs[i].mobX > playerX + 1) mobs[i].mobX--;
+			  if(mobs[i].mobY > playerY + 2) mobs[i].mobY--;                                                             // Os mobs agora ja nao vao para a mesma casa do player.
+			}                                                                                                            // Mas agora que penso bastava so dar um numero para o player no mapData
+		    else if(mobs[i].mobY < playerY && (mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 10))                          // e a funcao ja funcionava nao tinha the acrescentar aqueles ifs todos
+		    {                                                                                                            // Se alguem quiser fazer esse pequeno upgrade eu agradecia(LOPES)
+			  if(mobs[i].mobY < playerY - 2 || mobs[i].mobX > playerX + 1) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			  if(mobs[i].mobX > playerX + 1) mobs[i].mobX--;
+			  if(mobs[i].mobY < playerY - 2)mobs[i].mobY++;
+		    }
+		   else if((mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY] == 10))
+		   {
+             if(mobs[i].mobX > playerX + 1)
 			 {
                mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 			   mobs[i].mobX--;
+			 } 
+		   }
+		  }
+	      else if(mobs[i].mobX < playerX)
+		  {
+			if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 10))
+			{
+			 if(mobs[i].mobX < playerX - 1 || mobs[i].mobY > playerY + 2) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			 if(mobs[i].mobX < playerX - 1) mobs[i].mobX++;
+			 if( mobs[i].mobY > playerY + 2) mobs[i].mobY--;
+			}
+		    else if(mobs[i].mobY < playerY  && (mapData[mobs[i].mobX + 1][mobs[i].mobY + 2] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY + 2] == 10))
+		    {
+			  if(mobs[i].mobY < playerY - 2|| mobs[i].mobX < playerX + 1)  mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			  if(mobs[i].mobX < playerX + 1) mobs[i].mobX++;
+			  if(mobs[i].mobY < playerY - 2 ) mobs[i].mobY++;
+		    }
+		   else if((mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10))
+		   {
+             if(mobs[i].mobX < playerX - 1) 
+			 {
+               mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			   mobs[i].mobX++;
 			 }  
 		   }
-		 }
-	     else if(mobs[i].mobX == playerX)
-		 {
-			if(mobs[i].mobY > playerY && mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0)
+		  }
+	      else if(mobs[i].mobX == playerX)
+		  {
+			if(mobs[i].mobY > playerY + 2 && (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10))
 			{
 				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-				mobs[i].mobY++;
+				mobs[i].mobY--;
 			}
-		    else if(mobs[i].mobY < playerY  && mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0)
+		    else if(mobs[i].mobY < playerY - 2 && (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10))
 		    {
 			    mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-				mobs[i].mobY--;
+				mobs[i].mobY++;
 		    }
 		   else if(mapData[mobs[i].mobX][mobs[i].mobY] == 0)
 		   {
                continue;
 		   }
+		  }
+	      mapData[mobs[i].mobX][mobs[i].mobY] = 12;	
 		 }
-	     mapData[mobs[i].mobX][mobs[i].mobY] = 12;
-	   }
+		}
 	  }
 	}
     else 
@@ -329,9 +425,9 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[30], int playerX, int play
   }
 }
 
-void mob_attack(STATE *st, MOBS mobs[30]) 
+void mob_attack(STATE *st, MOBS mobs[40]) 
 {
-    for (int i = 0; i < 30; i++)                      // Esta funcao e respondavel por retirar hp do jogador													 
+    for (int i = 0; i < 40; i++)                      // Esta funcao e respondavel por retirar hp do jogador													 
 	{                                                // quando um mob se encontra perto. Mas com esta 
      int dx = mobs[i].mobX - st->playerX;            // abordagem todos os mobs e um bloco do jogador o conseguem atacar ao mesmo tempo.
      int dy = mobs[i].mobY - st->playerY;            // Da maneira atual no maximo o jogador leva 9 de dano por segundo se estiver rodeado por mobs.(LOPES)
@@ -343,7 +439,7 @@ void mob_attack(STATE *st, MOBS mobs[30])
     }
 }
 
-void player_attack(STATE *st, MOBS mobs[30],int mapData[LINES][COLS])		//->SPACEBAR atk
+void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS])		//->SPACEBAR atk
 {
 		int i, j, k;
 	if (r == 1)
@@ -352,11 +448,11 @@ void player_attack(STATE *st, MOBS mobs[30],int mapData[LINES][COLS])		//->SPACE
 		{
 			for (j = st->playerY-2; j <= st->playerY+2; j++)		//a coluna do jogador e a coluna a sua direita
 			{
-				for (k = 0; k < 30; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
+				for (k = 0; k < 40; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
 				{
 					if (i == mobs[k].mobX && j == mobs[k].mobY)
 					{
-						mobs[k].mobHP-= st->playerDMG;	//retira a hp
+						 mobs[k].mobHP-= st->playerDMG;	//retira a hp
     	               	if(mapData[mobs[k].mobX + 1][mobs[k].mobY] == 0) 
 					   			mapData[mobs[k].mobX + 1][mobs[k].mobY] = 10;
 					   	if(mapData[mobs[k].mobX - 1][mobs[k].mobY] == 0)
@@ -376,11 +472,11 @@ void player_attack(STATE *st, MOBS mobs[30],int mapData[LINES][COLS])		//->SPACE
 		{
 			for (j = st->playerY-2; j <= st->playerY; j++)		//a coluna do jogador e a coluna a sua esquerda
 			{
-				for (k = 0; k < 30; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
+				for (k = 0; k < 40; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
 				{
 					if (i == mobs[k].mobX && j == mobs[k].mobY)
 					{
-						mobs[k].mobHP-= st->playerDMG;	//retira a hp
+						 mobs[k].mobHP-= st->playerDMG;	//retira a hp
     	               	if(mapData[mobs[k].mobX + 1][mobs[k].mobY] == 0) 
 					   			mapData[mobs[k].mobX + 1][mobs[k].mobY] = 10;
 					   	if(mapData[mobs[k].mobX - 1][mobs[k].mobY] == 0) 
@@ -396,15 +492,15 @@ void player_attack(STATE *st, MOBS mobs[30],int mapData[LINES][COLS])		//->SPACE
 	}
 }
 
-void player_ulti(STATE *st, MOBS mobs[30], int mapData[LINES][COLS])
+void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS])
 { 
-  for(int i = 0; i < 30; i++)
+  for(int i = 0; i < 40; i++)
   {
     int dx = mobs[i].mobX - st->playerX;
     int dy = mobs[i].mobY - st->playerY;
     double distancia = sqrt(dx * dx + dy * dy);
 
-    if(distancia <= 5)
+    if(distancia <= 6)
     {
         mobs[i].mobHP -= st->playerDMG+5;		//dantes estava 5 fixo mas agora escala com os boosts que apanhas
     }
@@ -445,10 +541,7 @@ void ulti_clear(STATE *st, int mapData[LINES][COLS])
 {
   if(uon == 0)
   {
-	for(int i = 0 ; i < 20000; i++)
-	{
-		
-	}
+	
 	for (int i = st->playerX - 5; i <= st->playerX + 5; i++)
     {
         for (int j = st->playerY - 5; j <= st->playerY + 5; j++)
@@ -787,7 +880,7 @@ int main()
 	int i = 0;                          // alterei o hp do player para 20 para ser mais facil definir o dano dos mobs. Se o player tivesse de hp 3, ia ter de por o dano dos mobs decimal                       // caso contrario o mobs matava o player em 3 ataques o que imensamente rapido oq ue significava alterar todas as funcoes de int para float e nao me apetecia.
     int s = 0;                          // (LOPES)                                  
     int atime = 0;
-	
+	int chamamento = 0;
 	while (true) 
 	{
 	 if (st.playerHP <= 0) 
@@ -856,22 +949,29 @@ int main()
 	 s++;
 	 atime++;
 	 atime2++;
+     
 
      if(atime2 == 6000) atime2 = 0 ,uon = 0;
 
-	 if(atime == 10000)           
+	 if(atime == 9000)           
 	 {
 		aon = 0;
 		atime = 0;
 	 }
-	 if(s == 12000) // 13500 voltas = +/- 1 segundo --> Ou seja o jogador leva 1 de dano a cada segundo. (LOPES)
+	 if(s == 10000) // 13500 voltas = +/- 1 segundo --> Ou seja o jogador leva 1 de dano a cada segundo. (LOPES)
 	 {
 	  mob_attack(&st, mobs);
 	  s = 0;
 	 }
-	 if(i == 6000)  
+	 if(i == 2800)  
 	 {
 		mob_movement(mapData, mobs, st.playerX, st.playerY);
+		chamamento++;
+		if(chamamento >= 12) 
+		{
+			chamamento = 0;
+			grito = 0;
+		}
 		i = 0;
 	 }
 	}
