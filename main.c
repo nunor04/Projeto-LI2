@@ -131,7 +131,7 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[40], int playerX, int play
         x += sx;
       }
 
-      if(wallFound == 1 && (grito == 0 || dist_squared > 30))
+      if(wallFound == 1 && (grito == 0 || dist_squared > 40))
       {
         
         int s = rand() % 4;
@@ -234,12 +234,12 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[40], int playerX, int play
 	   {
 		   grito = 1;
 		   int nmobs = 0;
-		   for(int j = -10; j <= 10; j++)
+		   for(int j = -8; j <=8; j++)
            {
-              for(int k = -10; k <= 10; k++)
+              for(int k = -8; k <= 8; k++)
               {
                 int distanciacentro= sqrt(j*j + k*k);
-                if (distanciacentro <= 10)
+                if (distanciacentro <= 8)
                 {
                  int x = mobs[i].mobX + j;
                  int y = mobs[i].mobY + k;
@@ -248,7 +248,7 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[40], int playerX, int play
                 }
               }
            }    
-		 if(nmobs < 3 || (grito == 1 && dist_squared > 30)) 
+		 if(nmobs < 3 || (grito == 1 && dist_squared > 40)) 
 	   	 {	
 		    if(mobs[i].mobX > playerX)
 			{
@@ -264,16 +264,17 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[40], int playerX, int play
 				if(mobs[i].mobX > playerX ) mobs[i].mobX++;
 				if(mobs[i].mobY < playerY )mobs[i].mobY--;
 				}
-			else if(mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10)
-			{
+			    else if(mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10)
+			    {
 				if(mobs[i].mobX > playerX )
 				{
 				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 				mobs[i].mobX++;
-				if(rand() % 2 == 0) mobs[i].mobY++;
-				else if(rand() % 2 == 1) mobs[i].mobY--;
+				int move = rand()%2;
+				if((move == 0 || mobs[i].mobY - 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY+1] == 0) mobs[i].mobY++;
+				else if((move == 1 || mobs[i].mobY + 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY-1] == 0) mobs[i].mobY--;
 				} 
-			}
+			    }
 			}
 			else if(mobs[i].mobX < playerX)
 			{ 
@@ -289,32 +290,35 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[40], int playerX, int play
 				if(mobs[i].mobX < playerX ) mobs[i].mobX--;
 				if(mobs[i].mobY < playerY ) mobs[i].mobY--;
 				}
-			else if(mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY] == 10)
-			{
+			    else if(mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY] == 10)
+			    {
 				if(mobs[i].mobX < playerX) 
 				{
 				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 				mobs[i].mobX--;
-				if(rand() % 2 == 0) mobs[i].mobY++;
-				else if(rand() % 2 == 1) mobs[i].mobY--;
+				int move = rand()%2;
+				if((move == 0 || mobs[i].mobY - 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY+1] == 0) mobs[i].mobY++;
+				else if((move == 1 || mobs[i].mobY + 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY-1] == 0) mobs[i].mobY--;
 				}  
 			}
 			}
 			else if(mobs[i].mobX == playerX)
 			{
-				if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10) )
+				if((mobs[i].mobY > playerY || mobs[i].mobY - 1 == 1) && (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10) )
 				{
 					mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 					mobs[i].mobY++;
-					if(rand() % 2 == 0) mobs[i].mobX++;
-					else if(rand() % 2 == 1) mobs[i].mobX--;
+					int move = rand()%2;
+					if((move == 0 || mobs[i].mobX - 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY+1] == 0) mobs[i].mobX++;
+					else if((move == 1 || mobs[i].mobX + 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY+1] == 0) mobs[i].mobX--;
 				}
-				else if(mobs[i].mobY < playerY  && (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10))
+				else if((mobs[i].mobY < playerY || mobs[i].mobY+1 == 1) && (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10))
 				{
 					mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 					mobs[i].mobY--;
-					if(rand() % 2 == 0) mobs[i].mobX++;
-					else if(rand() % 2 == 1) mobs[i].mobX--;
+					int move = rand()%2;
+					if((move == 0 || mobs[i].mobX - 1 == 1) && mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0) mobs[i].mobX++;
+					else if((move == 1 || mobs[i].mobX + 1 == 1) && mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0) mobs[i].mobX--;
 				}
 			else if(mapData[mobs[i].mobX][mobs[i].mobY] == 0)
 			{
@@ -883,7 +887,7 @@ int main()
 	int chamamento = 0;
 	while (true) 
 	{
-	 if (st.playerHP <= 0) 
+	 if (st.playerHP <= -200) 
      {
        clear();
 	   int start_row = LINES/2-15;
