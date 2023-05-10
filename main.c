@@ -20,7 +20,7 @@ int healcost = 6;
 
 void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
 {
-	if(mapData[st->playerX + dx][st->playerY + dy] == 1 || mapData[st->playerX + dx][st->playerY + dy + 1] == 8 ||mapData[st->playerX + dx][st->playerY + dy - 1] == 8)
+	if(mapData[st->playerX + dx][st->playerY + dy] == 1 || mapData[st->playerX + dx][st->playerY + dy] == 8 ||mapData[st->playerX + dx][st->playerY + dy] == 8)
 		;
 
     else
@@ -721,10 +721,6 @@ void update(STATE *st, int mapData[LINES][COLS])
 				r = 1;
 				do_movement_action(st, +1, +1, mapData);
 				break;
-		case 'R':
-			st->playerX = 20;
-			st->playerY = 20;
-			break;		//reset para testes, TIRAR NA VERSÃO FINAL
 		case 'z':
 			aon = 0;
 			aon = 1;
@@ -887,7 +883,7 @@ int main()
 	int chamamento = 0;
 	while (true) 
 	{
-	 if (st.playerHP <= -200) 
+	 if (st.playerHP <= 0) 
      {
        clear();
 	   int start_row = LINES/2-15;

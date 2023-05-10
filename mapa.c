@@ -30,10 +30,11 @@ void gerar(int mapData[LINES][COLS])
 {
         int row, col,
             xwall_size, ywall_size, start_row, start_col,
-            i, j,
+            i, j, k, l,
             count = 0,
             hpboost = 3, dmgboost = 3,
-            xh = 1, yh = 1;
+            xh = 1, yh = 1,
+            exit = 0;
     srand(time(NULL));  //inicializa o rand
 
     for (row = 0; row < LINES; row++)
@@ -102,6 +103,36 @@ void gerar(int mapData[LINES][COLS])
         dmgboost--;
         xh = 0, yh = 0;
     }
+
+    //aqui vou fazer a saida do mapa para outras "salas" que depois precisará de ser detetado na main para gerar o mapa de novo
+    while(exit == 0 || exit == 1 ||exit == LINES-1 ||exit == LINES-2 || exit == LINES-3)
+    {
+        exit = rand() % LINES;
+    }
+    if (rand() % 2 == 0)
+    {
+        for (k = 0; k <= 1; k++)    //exit+k
+        {
+            for (l = 0; l <= 6; l++)    //faz uma saida de 2 casas que limpa espaço 5 casas a frente para garantir que dá para chegar lá
+            {
+                mapData[exit+k][l] = 0;
+            }
+        }
+    }
+    else
+    {
+        for (k = 0; k <= 1; k++)    //exit+k
+        {
+            for (l = COLS; l >= COLS -6; l--)    //faz uma saida de 2 casas que limpa espaço 5 casas a frente para garantir que dá para chegar lá
+            {
+                mapData[exit+k][l] = 0;
+            }
+        }
+    }
+
+    //pus isto a ter a porta possível nas 2 paredes mas n sei se meto só na parede da direita para ter a jornada de chegar lá, se bem que ao ter na direita...
+    //...o player vai ter de apanhar os boosts e o "Teorema Matemático" (aka infinity stones para dar summon a Estelita) que está nessa sala e só saia depois
+    //ps, ainda n implementei esse item, uma coisa de cada vez
 }
 
 
