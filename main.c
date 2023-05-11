@@ -19,11 +19,11 @@ int boss = 0;	//verifica se ele esta na bossroom ou não
 int sightrange = 400; 	//distancia que o player consegue ver
 
 
-MOBS mobs[41]; 
+MOBS mobs[40];
 
-void mob_spawn(int mapData[LINES][COLS], MOBS mobs[41])
+void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
 {
-    for (int i = 0; i < 40; i++) {
+	for (int i = 0; i < 40; i++) {
 	   int rnd = rand() % 6;
 	   if(rnd == 0 || rnd == 1 || rnd == 2 || rnd == 3 || rnd == 4)
 	   { 
@@ -41,11 +41,10 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[41])
 			mobs[i].mobX = rand() % LINES;                       //ja meti para ficar longe do spawn, ta mesmo aqui abaixo (20,20) sendo o spawn do player (joao)         
             mobs[i].mobY = rand() % COLS;
         } while (mapData[mobs[i].mobX][mobs[i].mobY] != 0 ||sqrt(pow(mobs[i].mobX - 20, 2) + pow(mobs[i].mobY - 20, 2)) < 10);
-       
+
 	   if(mobs[i].mobtype == 'e')mapData[mobs[i].mobX][mobs[i].mobY] = 8;
 	   else if(mobs[i].mobtype == 'c')mapData[mobs[i].mobX][mobs[i].mobY] = 12;
 	}
-
 }
 
 void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
@@ -60,21 +59,21 @@ void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
     }
 }
 
-void boss_spawn(int mapData[LINES][COLS], MOBS mobs[41])		//guardar a boss estelita como inimigo nr 41 que normalmente n leva spawn nem respawn
+void boss_spawn(int mapData[LINES][COLS], MOBS mobs[40])		//guardar a boss estelita como inimigo nr 41 que normalmente n leva spawn nem respawn
 {
-	mobs[40].mobtype = 'E';
-	mobs[40].mobDMG = 5;
-	mobs[40].mobHP = 100;		//epah talvez um pouco dificil, n sei
+	mobs[0].mobtype = 'E';
+	mobs[0].mobDMG = 5;
+	mobs[0].mobHP = 100;		//epah talvez um pouco dificil, n sei
 	do
 	{
-		mobs[40].mobX = rand() % LINES;
-        mobs[40].mobY = rand() % COLS;
-    } while (mapData[mobs[40].mobX][mobs[40].mobY] != 0 ||sqrt(pow(mobs[40].mobX - 30, 2) + pow(mobs[40].mobY - 100, 2)) < 10);
+		mobs[0].mobX = rand() % LINES;
+        mobs[0].mobY = rand() % COLS;
+    } while (mapData[mobs[0].mobX][mobs[0].mobY] != 0 ||sqrt(pow(mobs[0].mobX - 30, 2) + pow(mobs[0].mobY - 100, 2)) < 10);
 
-	mapData[mobs[40].mobX][mobs[40].mobY] = 20;
+	mapData[mobs[0].mobX][mobs[0].mobY] = 20;
 }
 
-void mob_respawn(int mapData[LINES][COLS], MOBS mobs[41], STATE* st)
+void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st)
 {
 		int i;
 	for(i = 0; i < 40; i++)
@@ -82,7 +81,7 @@ void mob_respawn(int mapData[LINES][COLS], MOBS mobs[41], STATE* st)
 		if(mobs[i].mobHP <= 0)
 		{
 			mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			if (boss == 0)
+			if (boss == 0)		//n queremos tar a spawnar bichanada na sala do boss
 			{
 				if(rand() % 3 == 0)
 				{	mobs[i].mobtype = 'e';
@@ -111,11 +110,18 @@ void mob_respawn(int mapData[LINES][COLS], MOBS mobs[41], STATE* st)
 	//aqui isto ve continuamente se ha algum mob morto e se ha entao usa a mesma cena de spawnar mas para 10 casas ou mais de distancia da posiçao atual do jogador
 }
 
+void mob_clear(MOBS mobs[40])
+{
+		int i;		//necessita da mob_respawn ativa para funcionar direito
+	for (i = 0; i < 40; i++)
+		mobs[i].mobHP = 0;
+}
 
-void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int playerY)
+
+void mob_movement(int mapData[LINES][COLS], MOBS mobs[40], int playerX, int playerY)
 {
   
-  for(int i = 0; i < 41; i++)
+  for(int i = 0; i < 40; i++)
   {
     int dx = mobs[i].mobX - playerX;
     int dy = mobs[i].mobY - playerY;
@@ -458,9 +464,9 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
   }
 }
 
-void mob_attack(STATE *st, MOBS mobs[41]) 
+void mob_attack(STATE *st, MOBS mobs[40]) 
 {
-    for (int i = 0; i < 41; i++)                      // Esta funcao e respondavel por retirar hp do jogador													 
+    for (int i = 0; i < 40; i++)                      // Esta funcao e respondavel por retirar hp do jogador													 
 	{                                                // quando um mob se encontra perto. Mas com esta 
      int dx = mobs[i].mobX - st->playerX;            // abordagem todos os mobs e um bloco do jogador o conseguem atacar ao mesmo tempo.
      int dy = mobs[i].mobY - st->playerY;            // Da maneira atual no maximo o jogador leva 9 de dano por segundo se estiver rodeado por mobs.(LOPES)
@@ -472,7 +478,7 @@ void mob_attack(STATE *st, MOBS mobs[41])
     }
 }
 
-void player_attack(STATE *st, MOBS mobs[41],int mapData[LINES][COLS])		//->SPACEBAR atk
+void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS])		//->SPACEBAR atk
 {
 		int i, j, k;
 	if (r == 1)
@@ -481,7 +487,7 @@ void player_attack(STATE *st, MOBS mobs[41],int mapData[LINES][COLS])		//->SPACE
 		{
 			for (j = st->playerY-2; j <= st->playerY+2; j++)		//a coluna do jogador e a coluna a sua direita
 			{
-				for (k = 0; k < 41; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
+				for (k = 0; k < 40; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
 				{
 					if (i == mobs[k].mobX && j == mobs[k].mobY)
 					{
@@ -505,7 +511,7 @@ void player_attack(STATE *st, MOBS mobs[41],int mapData[LINES][COLS])		//->SPACE
 		{
 			for (j = st->playerY-2; j <= st->playerY; j++)		//a coluna do jogador e a coluna a sua esquerda
 			{
-				for (k = 0; k < 41; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
+				for (k = 0; k < 40; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
 				{
 					if (i == mobs[k].mobX && j == mobs[k].mobY)
 					{
@@ -525,9 +531,9 @@ void player_attack(STATE *st, MOBS mobs[41],int mapData[LINES][COLS])		//->SPACE
 	}
 }
 
-void player_ulti(STATE *st, MOBS mobs[41], int mapData[LINES][COLS])
+void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS])
 { 
-  for(int i = 0; i < 41; i++)
+  for(int i = 0; i < 40; i++)
   {
     int dx = mobs[i].mobX - st->playerX;
     int dy = mobs[i].mobY - st->playerY;
@@ -722,23 +728,27 @@ void update(STATE *st, int mapData[LINES][COLS])
 		case KEY_A1:
 			case '7':
 				aon = 0;
+				uon = 0;
 				r = 0;
 				do_movement_action(st, -1, -1, mapData);
 				break;
 		case KEY_UP:
 			case '8':
 				aon = 0;
+				uon = 0;
 				do_movement_action(st, -1, +0, mapData);
 				break;
 		case KEY_A3:
 			case '9':
 				aon = 0;
+				uon = 0;
 				r = 1;
 				do_movement_action(st, -1, +1, mapData);
 				break;
 		case KEY_LEFT:
 			case '4': 
 				aon = 0;
+				uon = 0;
 			    r = 0;
 				do_movement_action(st, +0, -1, mapData);
 				break;
@@ -748,23 +758,27 @@ void update(STATE *st, int mapData[LINES][COLS])
 		case KEY_RIGHT:
 			case '6': 
 				aon = 0;
+				uon = 0;
 				r = 1;
 				do_movement_action(st, +0, +1, mapData);
 			    break;
 		case KEY_C1:
 			case '1': 
 				aon = 0;
+				uon = 0;
 				r = 0;
 				do_movement_action(st, +1, -1, mapData);
 				break;
 		case KEY_DOWN:
 			case '2': 
 				aon = 0;
+				uon = 0;
 				do_movement_action(st, +1, +0, mapData);
 				break;
 		case KEY_C3:
 			case '3': 
 				aon = 0;
+				uon = 0;
 				r = 1;
 				do_movement_action(st, +1, +1, mapData);
 				break;
@@ -940,6 +954,7 @@ void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40])
 		int i, j;
 	if(st->playerTM < 3)
 	{
+		mob_clear(mobs);
 		gerar(mapData);
 		mob_spawn(mapData, mobs);
 		st->playerX = 20;
@@ -957,6 +972,7 @@ void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40])
 	{
 		boss = 1;
 		sightrange = 6400;
+		mob_clear(mobs);
 		bossroom(mapData);
 		boss_spawn(mapData, mobs);
 		st->playerX = 30;
@@ -966,7 +982,10 @@ void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40])
 
 void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs)
 {
+ sightrange = 400;
+ boss = 0;
  gerar(mapData);
+ mob_clear(mobs);
  mob_spawn(mapData, mobs);
  *st = (STATE){20,20,20,20,1,0,0};                                                    
 }
@@ -994,8 +1013,8 @@ int main()
 
 	gerar(mapData);
     mob_spawn(mapData, mobs);
-			//meti a coordenada y a 200 e os tm a 3 para testar a boss room, depois coloca-se a 20 e a 0 respetivamente
-	STATE st = {20,200,20,20,1,0,3};			//coordenada 20,20, começa com 20HP atual, 20HP max e 1DMG inicial, 0 de blood, 0 TM iniciais                                    
+			//meti a coordenada y a 200 e os tm a 3 para testar a boss room, depois coloca-se a 20 e a 0 respetivamente, 50 dmg e 18 blood
+	STATE st = {20,200,20,20,50,18,3};			//coordenada 20,20, começa com 20HP atual, 20HP max e 1DMG inicial, 0 de blood, 0 TM iniciais                                    
 	int i = 0;                          // alterei o hp do player para 20 para ser mais facil definir o dano dos mobs. Se o player tivesse de hp 3, ia ter de por o dano dos mobs decimal                       // caso contrario o mobs matava o player em 3 ataques o que imensamente rapido oq ue significava alterar todas as funcoes de int para float e nao me apetecia.
     int s = 0;                          // (LOPES)                                  
     int atime = 0;
