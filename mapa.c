@@ -24,6 +24,8 @@ codigo de matriz para armazenar as informações do mapa
 
     10 -> sangue
     11 -> efeito do ulti do jogador
+    15 -> infinity stones, sei la man;
+    20 -> "ESTELITA"
 */
 
 void gerar(int mapData[LINES][COLS])
@@ -32,7 +34,7 @@ void gerar(int mapData[LINES][COLS])
             xwall_size, ywall_size, start_row, start_col,
             i, j, k, l,
             count = 0,
-            hpboost = 3, dmgboost = 3,
+            hpboost = 3, dmgboost = 2,
             xh = 1, yh = 1,
             exit = 0;
     srand(time(NULL));  //inicializa o rand
@@ -109,30 +111,46 @@ void gerar(int mapData[LINES][COLS])
     {
         exit = rand() % LINES;
     }
-    if (rand() % 2 == 0)
+    
+    for (k = 0; k <= 1; k++)    //exit+k
     {
-        for (k = 0; k <= 1; k++)    //exit+k
+        for (l = COLS; l >= COLS -7; l--)    //faz uma saida de 2 casas que limpa espaço 5 casas a frente para garantir que dá para chegar lá
         {
-            for (l = 0; l <= 6; l++)    //faz uma saida de 2 casas que limpa espaço 5 casas a frente para garantir que dá para chegar lá
-            {
-                mapData[exit+k][l] = 0;
-            }
+            mapData[exit+k][l] = 0;     //parede da direita
         }
     }
-    else
+    
+        //estelita item time
+    while(mapData[xh][yh] == 1 || mapData[xh][yh] == 6 || mapData[xh][yh] == 7 || sqrt(pow(xh - playerX, 2) + pow(yh - playerY, 2)) < 30)     
+            //so para o loop quando as coordenadas escolhidas não estão dentro de uma parede
     {
-        for (k = 0; k <= 1; k++)    //exit+k
-        {
-            for (l = COLS; l >= COLS -6; l--)    //faz uma saida de 2 casas que limpa espaço 5 casas a frente para garantir que dá para chegar lá
-            {
-                mapData[exit+k][l] = 0;
-            }
-        }
+        xh = rand() % LINES;    //vai randomizando as coordenadas do item até estarem acessíveis ao jogador
+        yh = rand() % COLS;
     }
+    mapData[xh][yh] = 15;   //1 TM por mapa, yh vai ser dificil ter o 3
+    xh = 0, yh = 0;
 
-    //pus isto a ter a porta possível nas 2 paredes mas n sei se meto só na parede da direita para ter a jornada de chegar lá, se bem que ao ter na direita...
-    //...o player vai ter de apanhar os boosts e o "Teorema Matemático" (aka infinity stones para dar summon a Estelita) que está nessa sala e só saia depois
-    //ps, ainda n implementei esse item, uma coisa de cada vez
+}
+
+
+    //aqui e que se faz a arena do boss
+void bossroom(int mapData[LINES][COLS])
+{
+        int row, col;
+    for (row = 0; row < LINES; row++)
+    {
+        for (col = 0; col < COLS; col++)
+        {
+            if (row >= LINES/3 && row < 2*(LINES/3) && col >= COLS/3 && col < 2*(COLS/3))
+            {
+                mapData[row][col] = 0;
+            }
+            else
+            {
+                mapData[row][col] = 1;
+            }
+        }
+    }
 }
 
 

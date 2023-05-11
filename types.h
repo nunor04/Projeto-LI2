@@ -6,6 +6,7 @@ typedef struct state
 	int playerMAXHP;	//o que vai contar o maximo valor possivel para a vida que aumenta com o item de aumentar a vida, para prevenir que "cure" para mais vida do que temdesbloqueado
 	int playerDMG;
 	int playerBLOOD;             	 //base do jogador que começa em 1 e pode aumentar com itens
+	int playerTM; 		//TM como teoremas matematicos, yup, estelita time
 } STATE;
 
 typedef struct mob

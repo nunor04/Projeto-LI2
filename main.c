@@ -16,6 +16,8 @@ int atime2 = 0;
 int grito = 0;
 int ultcost = 18;
 int healcost = 6;
+int boss = 0;	//verifica se ele esta na bossroom ou não
+int sightrange = 400; 	//distancia que o player consegue ver
 
 
 void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
@@ -30,8 +32,9 @@ void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
     }
 }
 
-MOBS mobs[40];
-void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
+MOBS mobs[41];
+
+void mob_spawn(int mapData[LINES][COLS], MOBS mobs[41])
 {
     for (int i = 0; i < 40; i++) {
 	   int rnd = rand() % 6;
@@ -47,7 +50,7 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
 		mobs[i].mobDMG = 1;   // 25% de chance de spawnar uma cobarde
         mobs[i].mobHP = 1;
 	   }
-		do {                                                     //mas sinto que 5 é demasiado pouco (joao)
+		do {
 			mobs[i].mobX = rand() % LINES;                       //ja meti para ficar longe do spawn, ta mesmo aqui abaixo (20,20) sendo o spawn do player (joao)         
             mobs[i].mobY = rand() % COLS;
         } while (mapData[mobs[i].mobX][mobs[i].mobY] != 0 ||sqrt(pow(mobs[i].mobX - 20, 2) + pow(mobs[i].mobY - 20, 2)) < 10);
@@ -57,34 +60,51 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
 	}
 }
 
-void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st)
+void boss_spawn(int mapData[LINES][COLS], MOBS mobs[41])		//guardar a boss estelita como inimigo nr 41 que normalmente n leva spawn nem respawn
+{
+	mobs[40].mobtype = 'E';
+	mobs[40].mobDMG = 5;
+	mobs[40].mobHP = 100;		//epah talvez um pouco dificil, n sei
+	do
+	{
+		mobs[40].mobX = rand() % LINES;
+        mobs[40].mobY = rand() % COLS;
+    } while (mapData[mobs[40].mobX][mobs[40].mobY] != 0 ||sqrt(pow(mobs[40].mobX - 30, 2) + pow(mobs[40].mobY - 100, 2)) < 10);
+
+	mapData[mobs[40].mobX][mobs[40].mobY] = 20;
+}
+
+void mob_respawn(int mapData[LINES][COLS], MOBS mobs[41], STATE* st)
 {
 		int i;
-	for(i = 0; i < 40; i++)
+	for(i = 0; i < 41; i++)
 	{
 		if(mobs[i].mobHP <= 0)
 		{
-			if(rand() % 3 == 0)
-			{	mobs[i].mobtype = 'e';
-				mobs[i].mobDMG = 1;
-        		mobs[i].mobHP = 3;  	//cria os status para novo mob
-			}
-			else if(rand() % 3 == 1)
-			{
-				mobs[i].mobtype = 'c';
-				mobs[i].mobDMG = 1;
-        		mobs[i].mobHP = 1; 
-			}
 			mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			do 
+			if (boss == 0)
 			{
-				mobs[i].mobX = rand() % LINES;        
-            	mobs[i].mobY = rand() % COLS;
-        	}
-			while (mapData[mobs[i].mobX][mobs[i].mobY] != 0 ||sqrt(pow(mobs[i].mobX - st->playerX, 2) + pow(mobs[i].mobY - st->playerY, 2)) < 10);
-       		
-			if(mobs[i].mobtype == 'e')mapData[mobs[i].mobX][mobs[i].mobY] = 8;
-	        else if(mobs[i].mobtype == 'c')mapData[mobs[i].mobX][mobs[i].mobY] = 12;
+				if(rand() % 3 == 0)
+				{	mobs[i].mobtype = 'e';
+					mobs[i].mobDMG = 1;
+        			mobs[i].mobHP = 3;  	//cria os status para novo mob
+				}
+				else if(rand() % 3 == 1)
+				{
+					mobs[i].mobtype = 'c';
+					mobs[i].mobDMG = 1;
+        			mobs[i].mobHP = 1; 
+				}
+				do 
+				{
+					mobs[i].mobX = rand() % LINES;        
+            		mobs[i].mobY = rand() % COLS;
+        		}
+				while (mapData[mobs[i].mobX][mobs[i].mobY] != 0 ||sqrt(pow(mobs[i].mobX - st->playerX, 2) + pow(mobs[i].mobY - st->playerY, 2)) < 10);
+	
+				if(mobs[i].mobtype == 'e')mapData[mobs[i].mobX][mobs[i].mobY] = 8;
+	        	else if(mobs[i].mobtype == 'c')mapData[mobs[i].mobX][mobs[i].mobY] = 12;
+			}
 		}
 	}
 
@@ -92,10 +112,10 @@ void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st)
 }
 
 
-void mob_movement(int mapData[LINES][COLS], MOBS mobs[40], int playerX, int playerY)
+void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int playerY)
 {
   
-  for(int i = 0; i < 40; i++)
+  for(int i = 0; i < 41; i++)
   {
     int dx = mobs[i].mobX - playerX;
     int dy = mobs[i].mobY - playerY;
@@ -571,7 +591,7 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
             int dist_squared = dx*dx + dy*dy;
 
             //limita a visão do jogador a um raio de 20 casas
-            if (dist_squared <= 400)
+            if (dist_squared <= sightrange)
 			{
                 //usa-se a verificação LOS de Bresenham do jogador para a casa (i,j)
                 int visible = 1;
@@ -632,7 +652,7 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
                     if(mapData[i][j] == 8)
 					{
 					   attron(COLOR_PAIR(COLOR_MAGENTA));
-					   mvaddch(i, j, 'e');
+					   mvaddch(i, j, 'e' | A_BOLD);
 					   attroff(COLOR_PAIR(COLOR_MAGENTA));				   
 					}
 				    if(mapData[i][j] == 10)
@@ -644,7 +664,19 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
 				    if(mapData[i][j] == 12)
 					{
 					   attron(COLOR_PAIR(COLOR_MAGENTA));
-					   mvaddch(i, j, 'c');
+					   mvaddch(i, j, 'c' | A_BOLD);
+					   attroff(COLOR_PAIR(COLOR_MAGENTA));				   
+					}
+					if(mapData[i][j] == 15)
+					{
+					   attron(COLOR_PAIR(COLOR_CYAN));
+					   mvaddch(i, j, 'o' | A_BOLD);
+					   attroff(COLOR_PAIR(COLOR_CYAN));				   
+					}
+					if(mapData[i][j] == 20)
+					{
+					   attron(COLOR_PAIR(COLOR_MAGENTA));
+					   mvaddch(i, j, 'E' | A_BOLD);
 					   attroff(COLOR_PAIR(COLOR_MAGENTA));				   
 					}
 				}  
@@ -735,9 +767,14 @@ void update(STATE *st, int mapData[LINES][COLS])
 			}
 			break;
 		case 'c':			//c cura agora :)
-            if(st->playerBLOOD >= healcost && st->playerHP < st->playerMAXHP)
+            if (st->playerBLOOD >= healcost && st->playerHP < st->playerMAXHP-1)
 			{
               	st->playerHP+=2;
+				st->playerBLOOD-= healcost;
+			}
+			else if (st->playerBLOOD >= healcost && st->playerHP == st->playerMAXHP-1)
+			{
+              	st->playerHP++;
 				st->playerBLOOD-= healcost;
 			}
 			break;
@@ -788,22 +825,35 @@ void drawHP(STATE *st)
 		int i;
 	mvaddstr(1, 0, "HP:");	//usa os primeiros 3 indices
 	for (i = 0; i < st->playerMAXHP; i++)
-		mvaddch(1, 3+i, '-');
+		mvaddch(1, 3+i, '-' | A_BOLD);
 	for (i = 0; i < st->playerHP; i++)
-		mvaddch(1, 3+i, '|');  // alterei o simbolo de 'o' para '|'. Acho que fica melhor fica a parecer uma barra de HP.(LOPES)
-    if(st->playerMAXHP < st->playerHP)
 	{
+		if (i < 20)
+			mvaddch(1, 3+i, '|' | A_BOLD);
+		else
+		{
+			attron(COLOR_PAIR(COLOR_YELLOW));
+			mvaddch(1, 3+i, '|' | A_BOLD);
+			attroff(COLOR_PAIR(COLOR_YELLOW));
+		}
+	}  // alterei o simbolo de 'o' para '|'. Acho que fica melhor fica a parecer uma barra de HP.(LOPES)
+    /*if(st->playerMAXHP < st->playerHP)
+	 {
 	 for (i = 0; i < st->playerHP - st->playerMAXHP; i++)
 	 mvaddch(1, st->playerHP-i, ' ');
-	}
+	} */		//n sei o que e que isto esta aqui a fazer (joao)
 }
 
 void drawDMG(STATE *st)
 {
-	   int i;
-	   mvaddstr(0, 0, "DMG BOOST:");	//usa os primeiros 3 indices
-	   for (i = 0; i < st->playerDMG-1; i++)
-	   mvaddstr(0, 11+i, ">");
+		int i;
+	mvaddstr(0, 0, "DMG BOOST:");	//usa os primeiros 3 indices
+	for (i = 0; i < st->playerDMG-1; i++)
+	{
+		attron(COLOR_PAIR(COLOR_YELLOW));
+		mvaddch(0, 11+i, '>' | A_BOLD);
+		attroff(COLOR_PAIR(COLOR_YELLOW));
+	}
 }
 
 void drawBLOOD(STATE *st)
@@ -815,7 +865,7 @@ void drawBLOOD(STATE *st)
 	for(int i = 0; i < st->playerBLOOD; i++)
 	{
 		attron(COLOR_PAIR(COLOR_RED));
-		mvaddstr(1, COLS/2 - 10 + i, "|");
+		mvaddch(1, COLS/2 - 10 + i, '|' | A_BOLD);
 		attroff(COLOR_PAIR(COLOR_RED));
 	}
    	if(st->playerBLOOD >= healcost && st->playerHP < st->playerMAXHP)
@@ -826,15 +876,34 @@ void drawBLOOD(STATE *st)
    	}
 }
 
+void drawTM(STATE *st)
+{
+		int i;
+	mvaddstr(0, COLS-12, "HOLY TEXTS");	//usa os primeiros 3 indices
+	for (i = 0; i < 3; i++)
+	{
+		attron(COLOR_PAIR(COLOR_BLACK));
+		mvaddch(1, COLS-9 +i, 'o');
+		attroff(COLOR_PAIR(COLOR_BLACK));
+	}
+	for (i = 0; i < st->playerTM; i++)
+	{
+		attron(COLOR_PAIR(COLOR_BLUE));
+		mvaddch(1, COLS-9 +i, 'o' | A_BOLD);
+		attroff(COLOR_PAIR(COLOR_BLUE));
+	}
+}
+
+
 void itemcollect(STATE *st, int mapData[LINES][COLS])		//só o player e que apanha itens, mesmo a espada estando por cima, ela n apanha
 {	
-	if(mapData[st->playerX][st->playerY] == 6)
-	{
+	if(mapData[st->playerX][st->playerY] == 6 && st->playerMAXHP < 35)		//meti cap para a vida maxima que pode ter é de 35
+	{																		//apesar que se for para o boss o mais rapido possivel so ira ter 29 no max
 		st->playerMAXHP++;
 		mapData[st->playerX][st->playerY] = 0;
 	}
-	if(mapData[st->playerX][st->playerY] == 7)
-	{
+	if(mapData[st->playerX][st->playerY] == 7 && st->playerDMG < 5)		//meti tambem cap para o dano maximo que o jogador pode dar de 5
+	{																		
 		st->playerDMG++;
 		mapData[st->playerX][st->playerY] = 0;
 	}
@@ -843,14 +912,48 @@ void itemcollect(STATE *st, int mapData[LINES][COLS])		//só o player e que apan
 	    st->playerBLOOD++;
 		mapData[st->playerX][st->playerY] = 0;
 	}
+	if(mapData[st->playerX][st->playerY] == 15 && st->playerTM < 3)
+    {
+	    st->playerTM++;
+		mapData[st->playerX][st->playerY] = 0;
+	}
 
 }
 
-void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs) 
+void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40])
+{			//se sair do mapa entao gera nova sala e volta tudo ao "inicio" dessa sala, mas com os buffs
+		int i, j;
+	if(st->playerTM < 3)
+	{
+		gerar(mapData);
+		mob_spawn(mapData, mobs);
+		st->playerX = 20;
+		st->playerY = 0;
+
+    	for (i = 0; i <= 1; i++)
+    	{
+    	    for (j = 0; j <= 7; j++)
+    	    {
+    	        mapData[20+i][j] = 0;     //porta por onde entra a esquerda
+    	    }
+    	}
+	}
+	else	//aqui irá acontecer a bossroom
+	{
+		boss = 1;
+		sightrange = 6400;
+		bossroom(mapData);
+		boss_spawn(mapData, mobs);
+		st->playerX = 30;
+		st->playerY = 100;
+	}
+}
+
+void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs)
 {
  gerar(mapData);
  mob_spawn(mapData, mobs);
- *st = (STATE){20,20,20,20,1,0};                                                         
+ *st = (STATE){20,20,20,20,1,0,0};                                                         
 }
 int main()
 {
@@ -875,8 +978,8 @@ int main()
 
 	gerar(mapData);
     mob_spawn(mapData, mobs);
-	
-	STATE st = {20,20,20,20,1,0};			//coordenada 20,20, começa com 20HP atual, 20HP max e 1DMG inicial, 0 de blood                                    
+			//meti a coordenada y a 200 e os tm a 3 para testar a boss room, depois coloca-se a 20 e a 0 respetivamente
+	STATE st = {20,200,20,20,1,0,3};			//coordenada 20,20, começa com 20HP atual, 20HP max e 1DMG inicial, 0 de blood, 0 TM iniciais                                    
 	int i = 0;                          // alterei o hp do player para 20 para ser mais facil definir o dano dos mobs. Se o player tivesse de hp 3, ia ter de por o dano dos mobs decimal                       // caso contrario o mobs matava o player em 3 ataques o que imensamente rapido oq ue significava alterar todas as funcoes de int para float e nao me apetecia.
     int s = 0;                          // (LOPES)                                  
     int atime = 0;
@@ -939,10 +1042,14 @@ int main()
 	 drawHP(&st);                         // com um novo mapa e tudo novo. (LOPES)
 	 drawBLOOD(&st);
 	 drawDMG(&st);
+	 if (st.playerTM >= 1)
+	 	drawTM(&st);
 	 itemcollect(&st, mapData);
 	 update(&st,mapData);
 	 mob_respawn(mapData, mobs, &st);
-	 ulti_clear(&st, mapData);                    
+	 ulti_clear(&st, mapData);
+	 if (st.playerY >= COLS)
+	 	newroom(&st,mapData, mobs);
 	 refresh();
 	 move(LINES - 1, 0);
 	 i++;
@@ -980,13 +1087,10 @@ int main()
 }
 
 /* Coisas a fazer:
- corrigir o custo do ulti porque acho que esta muito baixo (joao)
- Criar um sistema de game over para qnd o player morre. 
 
  Se houver tempo:
 
  Acrescentar novos mobs
- Acrescentar novas salas -- a boss estelita ira acontecer (joao)
 e tc
 
 q
