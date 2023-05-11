@@ -5,7 +5,6 @@
 #include <ncurses.h>
 #include <time.h>
 #include <math.h>
-
 #include "mapa.h"
 #include "types.h"
 
@@ -20,21 +19,9 @@ int boss = 0;	//verifica se ele esta na bossroom ou não
 int sightrange = 400; 	//distancia que o player consegue ver
 
 
-void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
-{
-	if(mapData[st->playerX + dx][st->playerY + dy] == 1 || mapData[st->playerX + dx][st->playerY + dy] == 8 ||mapData[st->playerX + dx][st->playerY + dy] == 8)
-		;
+MOBS mobs[40]; 
 
-    else
-	{
-		st->playerX += dx;
-        st->playerY += dy;
-    }
-}
-
-MOBS mobs[41];
-
-void mob_spawn(int mapData[LINES][COLS], MOBS mobs[41])
+void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
 {
     for (int i = 0; i < 40; i++) {
 	   int rnd = rand() % 6;
@@ -58,23 +45,46 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[41])
 	   if(mobs[i].mobtype == 'e')mapData[mobs[i].mobX][mobs[i].mobY] = 8;
 	   else if(mobs[i].mobtype == 'c')mapData[mobs[i].mobX][mobs[i].mobY] = 12;
 	}
+     for (int i = 0; i < 40; i++) {
+	 int rnd = rand() % 6;
+	 if(rnd == 0 || rnd == 1 || rnd == 2 || rnd == 3 || rnd == 4)
+	 { 
+	 mobs[i].mobtype = 'e';
+	 mobs[i].mobDMG = 1;
+	 mobs[i].mobHP = 3;                                       //Esta funcao spawna os mobs random
+	 }
+	 else if(rnd  == 5) 
+	 {
+	 mobs[i].mobtype = 'c';
+	 mobs[i].mobDMG = 1;   // 25% de chance de spawnar uma cobarde
+	 mobs[i].mobHP = 1;
+	 }
+	do 
+	{                                                     //mas sinto que 5 é demasiado pouco (joao)
+		mobs[i].mobX = rand() % LINES;                       //ja meti para ficar longe do spawn, ta mesmo aqui abaixo (20,20) sendo o spawn do player (joao)         
+		mobs[i].mobY = rand() % COLS;
+	 } while (mapData[mobs[i].mobX][mobs[i].mobY] != 0 ||sqrt(pow(mobs[i].mobX - 20, 2) + pow(mobs[i].mobY - 20, 2)) < 10);
+	
+	 if(mobs[i].mobtype == 'e')mapData[mobs[i].mobX][mobs[i].mobY] = 8;
+	 else if(mobs[i].mobtype == 'c')mapData[mobs[i].mobX][mobs[i].mobY] = 12;
+	 }
 }
 
-void boss_spawn(int mapData[LINES][COLS], MOBS mobs[41])		//guardar a boss estelita como inimigo nr 41 que normalmente n leva spawn nem respawn
+void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
 {
-	mobs[40].mobtype = 'E';
-	mobs[40].mobDMG = 5;
-	mobs[40].mobHP = 100;		//epah talvez um pouco dificil, n sei
-	do
-	{
-		mobs[40].mobX = rand() % LINES;
-        mobs[40].mobY = rand() % COLS;
-    } while (mapData[mobs[40].mobX][mobs[40].mobY] != 0 ||sqrt(pow(mobs[40].mobX - 30, 2) + pow(mobs[40].mobY - 100, 2)) < 10);
+	if(mapData[st->playerX + dx][st->playerY + dy] == 1 || mapData[st->playerX + dx][st->playerY + dy] == 8 ||mapData[st->playerX + dx][st->playerY + dy] == 8)
+		;
 
-	mapData[mobs[40].mobX][mobs[40].mobY] = 20;
+    else
+	{
+		st->playerX += dx;
+        st->playerY += dy;
+    }
 }
 
-void mob_respawn(int mapData[LINES][COLS], MOBS mobs[41], STATE* st)
+
+
+void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st)
 {
 		int i;
 	for(i = 0; i < 41; i++)
@@ -120,10 +130,13 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
     int dx = mobs[i].mobX - playerX;
     int dy = mobs[i].mobY - playerY;
     double dist_squared = sqrt(dx*dx + dy*dy);
-
-    if(dist_squared < 12 || grito == 1)
+    bool xminus = (mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY] == 10);
+	bool yminus = (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10);
+    bool xplus = (mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10);
+	bool yplus = (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10);
+	if(dist_squared < 12 || grito == 1)
     {
-	
+	  
 	  int x = mobs[i].mobX;
       int y = mobs[i].mobY;
       int sx = dx > 0 ? -1 : 1;
@@ -156,22 +169,22 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
         
         int s = rand() % 4;
 
-        if(s == 0 && (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10))
+        if(s == 0 && (yminus))
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobY--;
         }
-        else if(s == 1 && (mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10))
+        else if(s == 1 && (xplus))
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobX++;
         }
-        else if(s == 2 && (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10))
+        else if(s == 2 && (yplus))
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobY++;
         }
-        else if(s == 3 && (mapData[mobs[i].mobX -1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX -1][mobs[i].mobY] == 10))
+        else if(s == 3 && (xminus))
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobX--;
@@ -180,26 +193,28 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
         if(mobs[i].mobtype == 'e')mapData[mobs[i].mobX][mobs[i].mobY] = 8;
 	    else if(mobs[i].mobtype == 'c')mapData[mobs[i].mobX][mobs[i].mobY] = 12;	
 		
-    }
+      }
       else
 	  {
+	   
+	   
 	   if(mobs[i].mobtype == 'e')
 	   {
 		if(mobs[i].mobX > playerX)
 		{
-			if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 10))
+			if(mobs[i].mobY > playerY)
 			{
 			  if(mobs[i].mobX > playerX + 1 || mobs[i].mobY > playerY + 2) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			  if(mobs[i].mobX > playerX + 1) mobs[i].mobX--;
-			  if(mobs[i].mobY > playerY + 2) mobs[i].mobY--;                                                             // Os mobs agora ja nao vao para a mesma casa do player.
-			}                                                                                                            // Mas agora que penso bastava so dar um numero para o player no mapData
-		    else if(mobs[i].mobY < playerY && (mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 10))                          // e a funcao ja funcionava nao tinha the acrescentar aqueles ifs todos
-		    {                                                                                                            // Se alguem quiser fazer esse pequeno upgrade eu agradecia(LOPES)
-			  if(mobs[i].mobY < playerY - 2 || mobs[i].mobX > playerX + 1) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			  if(mobs[i].mobX > playerX + 1) mobs[i].mobX--;
-			  if(mobs[i].mobY < playerY - 2)mobs[i].mobY++;
+			  if(mobs[i].mobX > playerX + 1 && xminus) mobs[i].mobX--;
+			  if(mobs[i].mobY > playerY + 2 && (yminus)) mobs[i].mobY--;                                                             // Os mobs agora ja nao vao para a mesma casa do player.
+			}                                                                                                          
+		    else if(mobs[i].mobY < playerY)                         
+		    {                                                                                                            
+			  if((mobs[i].mobY < playerY - 2 || mobs[i].mobX > playerX + 1) && (xminus || yplus)) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			  if(mobs[i].mobX > playerX + 1 && xminus) mobs[i].mobX--;
+			  if(mobs[i].mobY < playerY - 2 && yplus)mobs[i].mobY++;
 		    }
-		   else if((mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY] == 10))
+		   else if(xminus)
 		   {
              if(mobs[i].mobX > playerX + 1)
 			 {
@@ -210,19 +225,19 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
 		}
 	    else if(mobs[i].mobX < playerX)
 		{
-			if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 10))
+			if(mobs[i].mobY > playerY)
 			{
-			 if(mobs[i].mobX < playerX - 1 || mobs[i].mobY > playerY + 2) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			 if(mobs[i].mobX < playerX - 1) mobs[i].mobX++;
-			 if( mobs[i].mobY > playerY + 2) mobs[i].mobY--;
+			 if((mobs[i].mobX < playerX - 1 || mobs[i].mobY > playerY + 2) && (xplus || yminus)) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			 if(mobs[i].mobX < playerX - 1 && xplus) mobs[i].mobX++;
+			 if( mobs[i].mobY > playerY + 2 && yminus) mobs[i].mobY--;
 			}
-		    else if(mobs[i].mobY < playerY  && (mapData[mobs[i].mobX + 1][mobs[i].mobY + 2] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY + 2] == 10))
+		    else if(mobs[i].mobY < playerY)
 		    {
-			  if(mobs[i].mobY < playerY - 2|| mobs[i].mobX < playerX + 1)  mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			  if(mobs[i].mobX < playerX + 1) mobs[i].mobX++;
-			  if(mobs[i].mobY < playerY - 2 ) mobs[i].mobY++;
+			  if((mobs[i].mobY < playerY - 2 || mobs[i].mobX < playerX + 1) && (xplus || yplus)) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			  if(mobs[i].mobX < playerX + 1 && xplus) mobs[i].mobX++;
+			  if(mobs[i].mobY < playerY - 2 && yplus) mobs[i].mobY++;
 		    }
-		   else if((mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10))
+		   else if((xplus))
 		   {
              if(mobs[i].mobX < playerX - 1) 
 			 {
@@ -233,12 +248,12 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
 		}
 	    else if(mobs[i].mobX == playerX)
 		{
-			if(mobs[i].mobY > playerY + 2 && (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10))
+			if(mobs[i].mobY > playerY + 2 && (yminus))
 			{
 				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 				mobs[i].mobY--;
 			}
-		    else if(mobs[i].mobY < playerY - 2 && (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10))
+		    else if(mobs[i].mobY < playerY - 2 && (yplus))
 		    {
 			    mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 				mobs[i].mobY++;
@@ -272,73 +287,73 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
 	   	 {	
 		    if(mobs[i].mobX > playerX)
 			{
-				if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX + 1][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY + 1] == 10))
+				if(mobs[i].mobY > playerY)
 				{
-				if(mobs[i].mobX > playerX || mobs[i].mobY > playerY) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-				if(mobs[i].mobX > playerX ) mobs[i].mobX++;
-				if(mobs[i].mobY > playerY ) mobs[i].mobY++;                                                             // Os mobs agora ja nao vao para a mesma casa do player.
+				if((mobs[i].mobX > playerX || mobs[i].mobY > playerY) && (xplus || yplus)) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				if(mobs[i].mobX > playerX && xplus) mobs[i].mobX++;
+				if(mobs[i].mobY > playerY && yplus) mobs[i].mobY++;                                                             // Os mobs agora ja nao vao para a mesma casa do player.
 				}                                                                                                             // Mas agora que penso bastava so dar um numero para o player no mapData
-				else if(mobs[i].mobY < playerY && (mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 10))                          // e a funcao ja funcionava nao tinha the acrescentar aqueles ifs todos
+				else if(mobs[i].mobY < playerY)                          // e a funcao ja funcionava nao tinha the acrescentar aqueles ifs todos
 				{                                                                                                            // Se alguem quiser fazer esse pequeno upgrade eu agradecia(LOPES)
-				if(mobs[i].mobY < playerY  || mobs[i].mobX > playerX ) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-				if(mobs[i].mobX > playerX ) mobs[i].mobX++;
-				if(mobs[i].mobY < playerY )mobs[i].mobY--;
+				if((mobs[i].mobY < playerY  || mobs[i].mobX > playerX) && (xplus || yminus)) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				if(mobs[i].mobX > playerX && xplus) mobs[i].mobX++;
+				if(mobs[i].mobY < playerY && yminus)mobs[i].mobY--;
 				}
-			    else if(mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10)
+			    else if(xplus)
 			    {
 				if(mobs[i].mobX > playerX )
 				{
 				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 				mobs[i].mobX++;
 				int move = rand()%2;
-				if((move == 0 || mobs[i].mobY - 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY+1] == 0) mobs[i].mobY++;
-				else if((move == 1 || mobs[i].mobY + 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY-1] == 0) mobs[i].mobY--;
+				if((move == 0 || mobs[i].mobY - 1 == 1) && yplus) mobs[i].mobY++;
+				else if((move == 1 || mobs[i].mobY + 1 == 1) && yminus) mobs[i].mobY--;
 				} 
 			    }
 			}
 			else if(mobs[i].mobX < playerX)
 			{ 
-				if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 10))
+				if(mobs[i].mobY > playerY)
 				{
-				if(mobs[i].mobX < playerX || mobs[i].mobY > playerY) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-				if(mobs[i].mobX < playerX ) mobs[i].mobX--;
-				if( mobs[i].mobY > playerY ) mobs[i].mobY++;
+				if((mobs[i].mobX < playerX || mobs[i].mobY > playerY) && (xminus || yplus)) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				if(mobs[i].mobX < playerX && xminus) mobs[i].mobX--;
+				if( mobs[i].mobY > playerY && yplus) mobs[i].mobY++;
 				}
-				else if(mobs[i].mobY < playerY  && (mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 10) )
+				else if(mobs[i].mobY < playerY)
 				{
-				if(mobs[i].mobY < playerY || mobs[i].mobX < playerX )  mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-				if(mobs[i].mobX < playerX ) mobs[i].mobX--;
-				if(mobs[i].mobY < playerY ) mobs[i].mobY--;
+				if((mobs[i].mobY < playerY || mobs[i].mobX < playerX) && (xminus || yminus))  mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+				if(mobs[i].mobX < playerX && xminus) mobs[i].mobX--;
+				if(mobs[i].mobY < playerY && yminus ) mobs[i].mobY--;
 				}
-			    else if(mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY] == 10)
+			    else if(xminus)
 			    {
 				if(mobs[i].mobX < playerX) 
 				{
 				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 				mobs[i].mobX--;
 				int move = rand()%2;
-				if((move == 0 || mobs[i].mobY - 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY+1] == 0) mobs[i].mobY++;
-				else if((move == 1 || mobs[i].mobY + 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY-1] == 0) mobs[i].mobY--;
+				if((move == 0 || mobs[i].mobY - 1 == 1) && yplus) mobs[i].mobY++;
+				else if((move == 1 || mobs[i].mobY + 1 == 1) && yminus) mobs[i].mobY--;
 				}  
 			}
 			}
 			else if(mobs[i].mobX == playerX)
 			{
-				if((mobs[i].mobY > playerY || mobs[i].mobY - 1 == 1) && (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10) )
+				if((mobs[i].mobY > playerY || mobs[i].mobY - 1 == 1) && (yplus))
 				{
 					mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 					mobs[i].mobY++;
 					int move = rand()%2;
-					if((move == 0 || mobs[i].mobX - 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY+1] == 0) mobs[i].mobX++;
-					else if((move == 1 || mobs[i].mobX + 1 == 1) && mapData[mobs[i].mobX][mobs[i].mobY+1] == 0) mobs[i].mobX--;
+					if((move == 0 || mobs[i].mobX - 1 == 1) && yplus) mobs[i].mobX++;
+					else if((move == 1 || mobs[i].mobX + 1 == 1) && yplus) mobs[i].mobX--;
 				}
-				else if((mobs[i].mobY < playerY || mobs[i].mobY+1 == 1) && (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10))
+				else if((mobs[i].mobY < playerY || mobs[i].mobY+1 == 1) && (yminus))
 				{
 					mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 					mobs[i].mobY--;
 					int move = rand()%2;
-					if((move == 0 || mobs[i].mobX - 1 == 1) && mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0) mobs[i].mobX++;
-					else if((move == 1 || mobs[i].mobX + 1 == 1) && mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0) mobs[i].mobX--;
+					if((move == 0 || mobs[i].mobX - 1 == 1) && xplus) mobs[i].mobX++;
+					else if((move == 1 || mobs[i].mobX + 1 == 1) && xminus) mobs[i].mobX--;
 				}
 			else if(mapData[mobs[i].mobX][mobs[i].mobY] == 0)
 			{
@@ -351,19 +366,19 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
 		 {
 		   if(mobs[i].mobX > playerX)
 		   {
-			if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY - 1] == 10))
+			if(mobs[i].mobY > playerY)
 			{
-			  if(mobs[i].mobX > playerX + 1 || mobs[i].mobY > playerY + 2) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			  if(mobs[i].mobX > playerX + 1) mobs[i].mobX--;
-			  if(mobs[i].mobY > playerY + 2) mobs[i].mobY--;                                                             // Os mobs agora ja nao vao para a mesma casa do player.
-			}                                                                                                            // Mas agora que penso bastava so dar um numero para o player no mapData
-		    else if(mobs[i].mobY < playerY && (mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY + 1] == 10))                          // e a funcao ja funcionava nao tinha the acrescentar aqueles ifs todos
-		    {                                                                                                            // Se alguem quiser fazer esse pequeno upgrade eu agradecia(LOPES)
+			  if((mobs[i].mobX > playerX + 1 || mobs[i].mobY > playerY + 2) && (xminus || yminus)) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			  if(mobs[i].mobX > playerX + 1 && xminus) mobs[i].mobX--;
+			  if(mobs[i].mobY > playerY + 2 && yminus) mobs[i].mobY--;                                                             
+			}                                                                                                            
+		    else if(mobs[i].mobY < playerY && (xminus || yplus))                      
+		    {                                                                                                          
 			  if(mobs[i].mobY < playerY - 2 || mobs[i].mobX > playerX + 1) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			  if(mobs[i].mobX > playerX + 1) mobs[i].mobX--;
-			  if(mobs[i].mobY < playerY - 2)mobs[i].mobY++;
+			  if(mobs[i].mobX > playerX + 1 && xminus) mobs[i].mobX--;
+			  if(mobs[i].mobY < playerY - 2 && yplus) mobs[i].mobY++;
 		    }
-		   else if((mapData[mobs[i].mobX - 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX - 1][mobs[i].mobY] == 10))
+		   else if(xminus)
 		   {
              if(mobs[i].mobX > playerX + 1)
 			 {
@@ -374,19 +389,19 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
 		  }
 	      else if(mobs[i].mobX < playerX)
 		  {
-			if(mobs[i].mobY > playerY && (mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY - 1] == 10))
+			if(mobs[i].mobY > playerY)
 			{
-			 if(mobs[i].mobX < playerX - 1 || mobs[i].mobY > playerY + 2) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			 if(mobs[i].mobX < playerX - 1) mobs[i].mobX++;
-			 if( mobs[i].mobY > playerY + 2) mobs[i].mobY--;
+			 if((mobs[i].mobX < playerX - 1 || mobs[i].mobY > playerY + 2) && (xplus || yminus)) mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			 if(mobs[i].mobX < playerX - 1 && xplus) mobs[i].mobX++;
+			 if( mobs[i].mobY > playerY + 2 && yminus) mobs[i].mobY--;
 			}
-		    else if(mobs[i].mobY < playerY  && (mapData[mobs[i].mobX + 1][mobs[i].mobY + 2] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY + 2] == 10))
+		    else if(mobs[i].mobY < playerY)
 		    {
-			  if(mobs[i].mobY < playerY - 2|| mobs[i].mobX < playerX + 1)  mapData[mobs[i].mobX][mobs[i].mobY] = 0;
-			  if(mobs[i].mobX < playerX + 1) mobs[i].mobX++;
-			  if(mobs[i].mobY < playerY - 2 ) mobs[i].mobY++;
+			  if((mobs[i].mobY < playerY - 2|| mobs[i].mobX < playerX + 1) && (xplus || yplus))  mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			  if(mobs[i].mobX < playerX + 1 && xplus) mobs[i].mobX++;
+			  if(mobs[i].mobY < playerY - 2 && yplus) mobs[i].mobY++;
 		    }
-		   else if((mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0 || mapData[mobs[i].mobX + 1][mobs[i].mobY] == 10))
+		   else if((xplus))
 		   {
              if(mobs[i].mobX < playerX - 1) 
 			 {
@@ -397,12 +412,12 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
 		  }
 	      else if(mobs[i].mobX == playerX)
 		  {
-			if(mobs[i].mobY > playerY + 2 && (mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY - 1] == 10))
+			if(mobs[i].mobY > playerY + 2 && (yminus))
 			{
 				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 				mobs[i].mobY--;
 			}
-		    else if(mobs[i].mobY < playerY - 2 && (mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0 || mapData[mobs[i].mobX][mobs[i].mobY + 1] == 10))
+		    else if(mobs[i].mobY < playerY - 2 && (yplus))
 		    {
 			    mapData[mobs[i].mobX][mobs[i].mobY] = 0;
 				mobs[i].mobY++;
@@ -419,24 +434,25 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
 	}
     else 
 	{
+	  
 	  int s2 = rand() % 4;
 
-        if(s2 == 0 && mapData[mobs[i].mobX][mobs[i].mobY - 1] == 0)
+        if(s2 == 0 && yminus)
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobY--;
         }
-        else if(s2 == 1 && mapData[mobs[i].mobX + 1][mobs[i].mobY] == 0)
+        else if(s2 == 1 && xplus)
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobX++;
         }
-        else if(s2 == 2 && mapData[mobs[i].mobX][mobs[i].mobY + 1] == 0)
+        else if(s2 == 2 && yplus)
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobY++;
         }
-        else if(s2 == 3 && mapData[mobs[i].mobX -1][mobs[i].mobY] == 0)
+        else if(s2 == 3 && xminus)
         {
           mapData[mobs[i].mobX][mobs[i].mobY] = 0;
           mobs[i].mobX--;
@@ -678,6 +694,12 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
 					   attron(COLOR_PAIR(COLOR_MAGENTA));
 					   mvaddch(i, j, 'E' | A_BOLD);
 					   attroff(COLOR_PAIR(COLOR_MAGENTA));				   
+					}
+				     if(mapData[i][j] == 13)
+					{
+					   attron(COLOR_PAIR(COLOR_CYAN));
+					   mvaddch(i, j, '.');
+					   attroff(COLOR_PAIR(COLOR_CYAN));				   
 					}
 				}  
 				else
@@ -954,7 +976,10 @@ void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs)
  gerar(mapData);
  mob_spawn(mapData, mobs);
  *st = (STATE){20,20,20,20,1,0,0};                                                         
+  mob_spawn(mapData, mobs);
+ *st = (STATE){20,20,20,20,1,0};                                                         
 }
+
 int main()
 {
 	initscr();
@@ -1067,6 +1092,7 @@ int main()
 	 }
 	 if(s == 10000) // 13500 voltas = +/- 1 segundo --> Ou seja o jogador leva 1 de dano a cada segundo. (LOPES)
 	 {
+
 	  mob_attack(&st, mobs);
 	  s = 0;
 	 }
