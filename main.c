@@ -19,9 +19,9 @@ int boss = 0;	//verifica se ele esta na bossroom ou não
 int sightrange = 400; 	//distancia que o player consegue ver
 
 
-MOBS mobs[40]; 
+MOBS mobs[41]; 
 
-void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
+void mob_spawn(int mapData[LINES][COLS], MOBS mobs[41])
 {
     for (int i = 0; i < 40; i++) {
 	   int rnd = rand() % 6;
@@ -45,29 +45,7 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
 	   if(mobs[i].mobtype == 'e')mapData[mobs[i].mobX][mobs[i].mobY] = 8;
 	   else if(mobs[i].mobtype == 'c')mapData[mobs[i].mobX][mobs[i].mobY] = 12;
 	}
-     for (int i = 0; i < 40; i++) {
-	 int rnd = rand() % 6;
-	 if(rnd == 0 || rnd == 1 || rnd == 2 || rnd == 3 || rnd == 4)
-	 { 
-	 mobs[i].mobtype = 'e';
-	 mobs[i].mobDMG = 1;
-	 mobs[i].mobHP = 3;                                       //Esta funcao spawna os mobs random
-	 }
-	 else if(rnd  == 5) 
-	 {
-	 mobs[i].mobtype = 'c';
-	 mobs[i].mobDMG = 1;   // 25% de chance de spawnar uma cobarde
-	 mobs[i].mobHP = 1;
-	 }
-	do 
-	{                                                     //mas sinto que 5 é demasiado pouco (joao)
-		mobs[i].mobX = rand() % LINES;                       //ja meti para ficar longe do spawn, ta mesmo aqui abaixo (20,20) sendo o spawn do player (joao)         
-		mobs[i].mobY = rand() % COLS;
-	 } while (mapData[mobs[i].mobX][mobs[i].mobY] != 0 ||sqrt(pow(mobs[i].mobX - 20, 2) + pow(mobs[i].mobY - 20, 2)) < 10);
-	
-	 if(mobs[i].mobtype == 'e')mapData[mobs[i].mobX][mobs[i].mobY] = 8;
-	 else if(mobs[i].mobtype == 'c')mapData[mobs[i].mobX][mobs[i].mobY] = 12;
-	 }
+
 }
 
 void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
@@ -82,12 +60,24 @@ void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
     }
 }
 
+void boss_spawn(int mapData[LINES][COLS], MOBS mobs[41])		//guardar a boss estelita como inimigo nr 41 que normalmente n leva spawn nem respawn
+{
+	mobs[40].mobtype = 'E';
+	mobs[40].mobDMG = 5;
+	mobs[40].mobHP = 100;		//epah talvez um pouco dificil, n sei
+	do
+	{
+		mobs[40].mobX = rand() % LINES;
+        mobs[40].mobY = rand() % COLS;
+    } while (mapData[mobs[40].mobX][mobs[40].mobY] != 0 ||sqrt(pow(mobs[40].mobX - 30, 2) + pow(mobs[40].mobY - 100, 2)) < 10);
 
+	mapData[mobs[40].mobX][mobs[40].mobY] = 20;
+}
 
-void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st)
+void mob_respawn(int mapData[LINES][COLS], MOBS mobs[41], STATE* st)
 {
 		int i;
-	for(i = 0; i < 41; i++)
+	for(i = 0; i < 40; i++)
 	{
 		if(mobs[i].mobHP <= 0)
 		{
@@ -198,7 +188,7 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
 	  {
 	   
 	   
-	   if(mobs[i].mobtype == 'e')
+	   if(mobs[i].mobtype == 'e' || mobs[i].mobtype == 'E')
 	   {
 		if(mobs[i].mobX > playerX)
 		{
@@ -263,7 +253,10 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
                continue;
 		   }
 		}
-	      mapData[mobs[i].mobX][mobs[i].mobY] = 8;
+	      if(mobs[i].mobtype == 'e')
+		  	mapData[mobs[i].mobX][mobs[i].mobY] = 8;
+		  else
+		  	mapData[mobs[i].mobX][mobs[i].mobY] = 20;
 	   }
 	   else if(mobs[i].mobtype == 'c')
 	   {
@@ -465,9 +458,9 @@ void mob_movement(int mapData[LINES][COLS], MOBS mobs[41], int playerX, int play
   }
 }
 
-void mob_attack(STATE *st, MOBS mobs[40]) 
+void mob_attack(STATE *st, MOBS mobs[41]) 
 {
-    for (int i = 0; i < 40; i++)                      // Esta funcao e respondavel por retirar hp do jogador													 
+    for (int i = 0; i < 41; i++)                      // Esta funcao e respondavel por retirar hp do jogador													 
 	{                                                // quando um mob se encontra perto. Mas com esta 
      int dx = mobs[i].mobX - st->playerX;            // abordagem todos os mobs e um bloco do jogador o conseguem atacar ao mesmo tempo.
      int dy = mobs[i].mobY - st->playerY;            // Da maneira atual no maximo o jogador leva 9 de dano por segundo se estiver rodeado por mobs.(LOPES)
@@ -479,7 +472,7 @@ void mob_attack(STATE *st, MOBS mobs[40])
     }
 }
 
-void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS])		//->SPACEBAR atk
+void player_attack(STATE *st, MOBS mobs[41],int mapData[LINES][COLS])		//->SPACEBAR atk
 {
 		int i, j, k;
 	if (r == 1)
@@ -488,7 +481,7 @@ void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS])		//->SPACE
 		{
 			for (j = st->playerY-2; j <= st->playerY+2; j++)		//a coluna do jogador e a coluna a sua direita
 			{
-				for (k = 0; k < 40; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
+				for (k = 0; k < 41; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
 				{
 					if (i == mobs[k].mobX && j == mobs[k].mobY)
 					{
@@ -512,7 +505,7 @@ void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS])		//->SPACE
 		{
 			for (j = st->playerY-2; j <= st->playerY; j++)		//a coluna do jogador e a coluna a sua esquerda
 			{
-				for (k = 0; k < 40; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
+				for (k = 0; k < 41; k++)		//percorre a lista dos mobs que possam estar nestas coordenadas
 				{
 					if (i == mobs[k].mobX && j == mobs[k].mobY)
 					{
@@ -532,9 +525,9 @@ void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS])		//->SPACE
 	}
 }
 
-void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS])
+void player_ulti(STATE *st, MOBS mobs[41], int mapData[LINES][COLS])
 { 
-  for(int i = 0; i < 40; i++)
+  for(int i = 0; i < 41; i++)
   {
     int dx = mobs[i].mobX - st->playerX;
     int dy = mobs[i].mobY - st->playerY;
@@ -975,9 +968,7 @@ void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs)
 {
  gerar(mapData);
  mob_spawn(mapData, mobs);
- *st = (STATE){20,20,20,20,1,0,0};                                                         
-  mob_spawn(mapData, mobs);
- *st = (STATE){20,20,20,20,1,0};                                                         
+ *st = (STATE){20,20,20,20,1,0,0};                                                    
 }
 
 int main()
