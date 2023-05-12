@@ -9,6 +9,7 @@ typedef struct state
 	int playerTM; 		//TM como teoremas matematicos, yup, estelita time
 } STATE;
 
+
 typedef struct mob
 {
 	char mobtype;
@@ -18,3 +19,7 @@ typedef struct mob
 	int mobDMG;
 	
 } MOBS;
+
+extern MOBS mobs[];
+extern STATE st;
+extern MOBS boss[];
