@@ -443,8 +443,8 @@ void mob_attack(STATE *st, MOBS mobs[40])
 void boss_spawn(int mapData[LINES][COLS], MOBS boss[1])		//guardar a boss estelita como inimigo nr 41 que normalmente n leva spawn nem respawn
 {
 	boss[0].mobtype = 'E';
-	boss[0].mobDMG = 5;
-	boss[0].mobHP = 100;		//epah talvez um pouco dificil, n sei
+	boss[0].mobDMG = 3;
+	boss[0].mobHP = 150;		//epah talvez um pouco dificil, n sei
 	do
 	{
 		boss[0].mobX = rand() % LINES;
@@ -471,10 +471,10 @@ void boss_attack(STATE *st, MOBS boss[1])
 
 void boss_movement(int mapData[LINES][COLS], MOBS boss[1], int playerX, int playerY)
 {
-	bool xminus = (mapData[boss[0].mobX - 1][boss[0].mobY] == 0 || mapData[boss[0].mobX - 1][boss[0].mobY] == 10);
-	bool yminus = (mapData[boss[0].mobX][boss[0].mobY - 1] == 0 || mapData[boss[0].mobX][boss[0].mobY - 1] == 10);
-    bool xplus = (mapData[boss[0].mobX + 1][boss[0].mobY] == 0 || mapData[boss[0].mobX + 1][boss[0].mobY] == 10);
-	bool yplus = (mapData[boss[0].mobX][boss[0].mobY + 1] == 0 || mapData[boss[0].mobX][boss[0].mobY + 1] == 10);
+	bool xminus = (mapData[boss[0].mobX - 1][boss[0].mobY] == 0 || mapData[boss[0].mobX - 1][boss[0].mobY] == 10 || mapData[boss[0].mobX - 1][boss[0].mobY] == 21);
+	bool yminus = (mapData[boss[0].mobX][boss[0].mobY - 1] == 0 || mapData[boss[0].mobX][boss[0].mobY - 1] == 10 || mapData[boss[0].mobX - 1][boss[0].mobY] == 21);
+    bool xplus = (mapData[boss[0].mobX + 1][boss[0].mobY] == 0 || mapData[boss[0].mobX + 1][boss[0].mobY] == 10 || mapData[boss[0].mobX - 1][boss[0].mobY] == 21);
+	bool yplus = (mapData[boss[0].mobX][boss[0].mobY + 1] == 0 || mapData[boss[0].mobX][boss[0].mobY + 1] == 10 || mapData[boss[0].mobX - 1][boss[0].mobY] == 21);
 	
 	if(boss[0].mobX > playerX)
 		{
@@ -538,3 +538,53 @@ void boss_movement(int mapData[LINES][COLS], MOBS boss[1], int playerX, int play
 		  	mapData[boss[0].mobX][boss[0].mobY] = 20;
 }
 
+void boss_ulti(STATE *st, MOBS boss[1], int mapData[LINES][COLS])
+{
+	int dx = boss[0].mobX - st->playerX;
+    int dy = boss[0].mobY - st->playerY;
+    double distancia = sqrt(dx * dx + dy * dy);
+  if(distancia >= 4 && rand()%6 == 1)	
+  {
+	bulton = 1;
+	udx = st->playerX;
+	udy = st->playerY;
+	for(int j = -1; j <= 1; j++)
+    {
+	  for(int k = -1; k <= 1; k++)
+      {
+        int distanciacentro= sqrt(j*j + k*k);
+        if (distanciacentro <= 2)
+        {
+		  int x = udx + j;
+          int y = udy + k;
+          if (x >= 0 && x < LINES && y >= 0 && y < COLS && mapData[x][y] == 0)
+          {
+			  mapData[x][y] = 22;
+          }
+        }
+      }
+    }
+  }
+}
+
+void boss_clear(STATE *st, int mapData[LINES][COLS])
+{
+ if(bulton == 1)
+  {
+	int dx = udx - st->playerX;
+    int dy = udy - st->playerY;
+    double distancia = sqrt(dx * dx + dy * dy);
+	
+	if(distancia <= 2)st->playerHP -= 5;
+	
+	for (int i = udx- 1; i <= udx + 1; i++)
+    {
+        for (int j = udy - 1; j <= udy + 1; j++)
+        {
+            if (mapData[i][j] == 22)
+                mapData[i][j] = 0;
+        }
+    }
+   bulton = 0;
+  }
+}

@@ -12,10 +12,15 @@
 #include "player.h"
 
 int r = 0;
+int udx = 0;
+int udy = 0;
 int aon = 0;
+int pux = 0;
+int puy = 0;
 int uon = 0;
 int atime2 = 0;
 int grito = 0;
+int bulton = 0;
 int ultcost = 18;
 int healcost = 6;
 int bosson = 0;	//verifica se ele esta na bossroom ou não
@@ -70,65 +75,81 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
 				{
 					if (mapData[i][j] == 0)
 					{
-                        mvaddch(i, j,'.');
+                        attron(COLOR_PAIR(12));
+						mvaddch(i, j,'.');
+						attroff(COLOR_PAIR(12));
                     }
 					if (mapData[i][j] == 1)
-					{
+					{  
+						attron(COLOR_PAIR(14));
                         mvaddch(i, j,'#');
-                    }
+                        attroff(COLOR_PAIR(14));
+					}   
 					if(mapData[i][j] == 5)
 					{
-						attron(COLOR_PAIR(COLOR_BLUE));
+						attron(COLOR_PAIR(8));
                         mvaddch(i, j, '+');
-						attroff(COLOR_PAIR(COLOR_BLUE));
+						attroff(COLOR_PAIR(8));
                     }
 					if(mapData[i][j] == 6)
 					{
-						attron(COLOR_PAIR(COLOR_YELLOW));
+						attron(COLOR_PAIR(7));
                         mvaddch(i, j, 'h');
-						attroff(COLOR_PAIR(COLOR_YELLOW));
+						attroff(COLOR_PAIR(7));
                     }
 					if(mapData[i][j] == 7)
 					{
-						attron(COLOR_PAIR(COLOR_YELLOW));
+						attron(COLOR_PAIR(7));
                         mvaddch(i, j, 'd');
-						attroff(COLOR_PAIR(COLOR_YELLOW));
+						attroff(COLOR_PAIR(7));
                     }
                     if(mapData[i][j] == 8)
 					{
-					   attron(COLOR_PAIR(COLOR_MAGENTA));
+					   attron(COLOR_PAIR(5));
 					   mvaddch(i, j, 'e' | A_BOLD);
-					   attroff(COLOR_PAIR(COLOR_MAGENTA));				   
+					   attroff(COLOR_PAIR(5));				   
 					}
 				    if(mapData[i][j] == 10)
 					{
-						attron(COLOR_PAIR(COLOR_RED));
+						attron(COLOR_PAIR(2));
 						mvaddch(i, j, '*');
-					    attroff(COLOR_PAIR(COLOR_RED));
+					    attroff(COLOR_PAIR(2));
 					}
 				    if(mapData[i][j] == 12)
 					{
-					   attron(COLOR_PAIR(COLOR_MAGENTA));
+					   attron(COLOR_PAIR(5));
 					   mvaddch(i, j, 'c' | A_BOLD);
-					   attroff(COLOR_PAIR(COLOR_MAGENTA));				   
+					   attroff(COLOR_PAIR(5));				   
 					}
 					if(mapData[i][j] == 15)
 					{
-					   attron(COLOR_PAIR(COLOR_CYAN));
+					   attron(COLOR_PAIR(4));
 					   mvaddch(i, j, 'o' | A_BOLD);
-					   attroff(COLOR_PAIR(COLOR_CYAN));				   
+					   attroff(COLOR_PAIR(4));				   
 					}
 					if(mapData[i][j] == 20)
 					{
-					   attron(COLOR_PAIR(COLOR_MAGENTA));
+					   attron(COLOR_PAIR(5));
 					   mvaddch(i, j, 'E' | A_BOLD);
-					   attroff(COLOR_PAIR(COLOR_MAGENTA));				   
+					   attroff(COLOR_PAIR(5));				   
 					}
-				     if(mapData[i][j] == 13)
+				    if(mapData[i][j] == 13)
 					{
-					   attron(COLOR_PAIR(COLOR_CYAN));
+					   attron(COLOR_PAIR(4));
 					   mvaddch(i, j, '.');
-					   attroff(COLOR_PAIR(COLOR_CYAN));				   
+					   attroff(COLOR_PAIR(4));				   
+					}
+				    if(mapData[i][j] == 21)
+					{
+					   attron(COLOR_PAIR(2));
+					   mvaddch(i, j, '%' | A_BOLD);
+					   attroff(COLOR_PAIR(2));				   
+					}
+					  if(mapData[i][j] == 22)
+					{
+					   attron(COLOR_PAIR(15));
+					   mvaddch(i, j, '*' | A_BOLD);
+					   attroff(COLOR_PAIR(15));				   
 					}
 				}  
 				else
@@ -145,28 +166,50 @@ void drawLight (int mapData[LINES][COLS], STATE *st)
    
 }
 
-void drawHP(STATE *st)
+void drawHP(STATE *st, MOBS boss[1])
 {
+		int start = (COLS/2 - 5);
 		int i;
 	mvaddstr(1, 0, "HP:");	//usa os primeiros 3 indices
 	for (i = 0; i < st->playerMAXHP; i++)
-		mvaddch(1, 3+i, '-' | A_BOLD);
+    {	
+		attron(COLOR_PAIR(1));
+		mvaddch(1, 3+i, '-');
+		attroff(COLOR_PAIR(1));
+	}
 	for (i = 0; i < st->playerHP; i++)
 	{
-		if (i < 20)
+		if(i <= 20)	
+		{
+			attron(COLOR_PAIR(3));
 			mvaddch(1, 3+i, '|' | A_BOLD);
+			attroff(COLOR_PAIR(3));
+		}
 		else
 		{
-			attron(COLOR_PAIR(COLOR_YELLOW));
+			attron(COLOR_PAIR(4));
 			mvaddch(1, 3+i, '|' | A_BOLD);
-			attroff(COLOR_PAIR(COLOR_YELLOW));
+			attroff(COLOR_PAIR(4));
 		}
-	}  // alterei o simbolo de 'o' para '|'. Acho que fica melhor fica a parecer uma barra de HP.(LOPES)
-    /*if(st->playerMAXHP < st->playerHP)
+	
+	}  
+   if(bosson == 1)
+   {
+	 mvaddstr(3, start, "BOSS HP");
+	 
+	 for(int j = 0; j < 150; j++)
+	  {
+        attron(COLOR_PAIR(10));
+		mvaddch(4, COLS/2-75+j, '-' | A_BOLD);
+	    attroff(COLOR_PAIR(10));
+	  }    
+	 for(int j = 0; j < boss[0].mobHP; j++)
 	 {
-	 for (i = 0; i < st->playerHP - st->playerMAXHP; i++)
-	 mvaddch(1, st->playerHP-i, ' ');
-	} */		//n sei o que e que isto esta aqui a fazer (joao)
+        attron(COLOR_PAIR(9));
+		mvaddch(4, COLS/2-75+j, '|' | A_BOLD);
+	    attroff(COLOR_PAIR(9));
+	 }
+   }
 }
 
 void drawDMG(STATE *st)
@@ -175,9 +218,9 @@ void drawDMG(STATE *st)
 	mvaddstr(0, 0, "DMG BOOST:");	//usa os primeiros 3 indices
 	for (i = 0; i < st->playerDMG-1; i++)
 	{
-		attron(COLOR_PAIR(COLOR_YELLOW));
+		attron(COLOR_PAIR(7));
 		mvaddch(0, 11+i, '>' | A_BOLD);
-		attroff(COLOR_PAIR(COLOR_YELLOW));
+		attroff(COLOR_PAIR(7));
 	}
 }
 
@@ -189,13 +232,13 @@ void drawBLOOD(STATE *st)
 	
 	for(int i = 0; i < st->playerBLOOD; i++)
 	{
-		attron(COLOR_PAIR(COLOR_RED));
+		attron(COLOR_PAIR(1));
 		mvaddch(1, COLS/2 - 10 + i, '|' | A_BOLD);
-		attroff(COLOR_PAIR(COLOR_RED));
+		attroff(COLOR_PAIR(1));
 	}
    	if(st->playerBLOOD >= healcost && st->playerHP < st->playerMAXHP)
 		mvaddstr(0, COLS/2 - 20, "C <- HEAL");
-   	if(st->playerBLOOD == ultcost)
+   	if(st->playerBLOOD >= ultcost)
    	{
 		mvaddstr(0, COLS/2 + 9, "ULTI -> X");
    	}
@@ -213,23 +256,23 @@ void drawTM(STATE *st)
 	}
 	for (i = 0; i < st->playerTM; i++)
 	{
-		attron(COLOR_PAIR(COLOR_BLUE));
+		attron(COLOR_PAIR(8));
 		mvaddch(1, COLS-9 +i, 'o' | A_BOLD);
-		attroff(COLOR_PAIR(COLOR_BLUE));
+		attroff(COLOR_PAIR(8));
 	}
 }
 
 
 void itemcollect(STATE *st, int mapData[LINES][COLS])		//só o player e que apanha itens, mesmo a espada estando por cima, ela n apanha
 {	
-	if(mapData[st->playerX][st->playerY] == 6 && st->playerMAXHP < 35)		//meti cap para a vida maxima que pode ter é de 35
+	if(mapData[st->playerX][st->playerY] == 6 && st->playerMAXHP < 50)		//meti cap para a vida maxima que pode ter é de 35
 	{																		//apesar que se for para o boss o mais rapido possivel so ira ter 29 no max
-		st->playerMAXHP++;
+		st->playerMAXHP+=3;
 		mapData[st->playerX][st->playerY] = 0;
 	}
 	if(mapData[st->playerX][st->playerY] == 7 && st->playerDMG < 5)		//meti tambem cap para o dano maximo que o jogador pode dar de 5
 	{																		
-		st->playerDMG++;
+		st->playerDMG+=2;
 		mapData[st->playerX][st->playerY] = 0;
 	}
     if(mapData[st->playerX][st->playerY] == 10 && st->playerBLOOD < ultcost)
@@ -240,6 +283,12 @@ void itemcollect(STATE *st, int mapData[LINES][COLS])		//só o player e que apan
 	if(mapData[st->playerX][st->playerY] == 15 && st->playerTM < 3)
     {
 	    st->playerTM++;
+		mapData[st->playerX][st->playerY] = 0;
+	}
+	if(mapData[st->playerX][st->playerY] == 21)
+    {
+	    st->playerBLOOD+=5;
+		if(st->playerBLOOD > 20) st->playerBLOOD= 20;
 		mapData[st->playerX][st->playerY] = 0;
 	}
 
@@ -273,8 +322,7 @@ void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40], MOBS boss[1])
 		boss_spawn(mapData, boss);
 		st->playerX = 30;
 		st->playerY = 100;
-	    st->playerHP = 60;
-	    st->playerDMG = 50;
+	    
 	}
 }
 
@@ -301,18 +349,29 @@ int main()
 	nonl();	
 	intrflush(stdscr, false);
 	keypad(stdscr, true);
+   
+    
+    init_color(13, 120, 120, 120);
+	init_color(11, 220, 220, 220);
+	init_pair(12,11,11);
+	init_pair(14,13,13);
+	init_pair(3,COLOR_GREEN,COLOR_GREEN);
+	init_pair(4,COLOR_CYAN,COLOR_CYAN);
+	init_pair(5,COLOR_MAGENTA,11);
+	init_pair(9,COLOR_MAGENTA,COLOR_MAGENTA);
+	init_pair(6, COLOR_WHITE, 11);
+	init_pair(10, COLOR_BLACK, 11);
+    init_pair(7, COLOR_YELLOW, 11);
+    init_pair(8, COLOR_BLUE, 11);
+    init_pair(2, COLOR_RED, 11);
+    init_pair(1,COLOR_RED,COLOR_RED);
+	init_pair(15,COLOR_YELLOW,COLOR_YELLOW);
 
-	init_pair(COLOR_CYAN,COLOR_CYAN,COLOR_BLUE);
-	init_pair(COLOR_MAGENTA,COLOR_MAGENTA,COLOR_BLACK );
-	init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
-    init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
-    init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
-    init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);
-
+	
 	gerar(mapData);
     mob_spawn(mapData, mobs);
 			//meti a coordenada y a 200 e os tm a 3 para testar a boss room, depois coloca-se a 20 e a 0 respetivamente, 50 dmg e 18 blood
-	STATE st = {20,200,20,20,1,0,3};			//coordenada 20,20, começa com 20HP atual, 20HP max e 1DMG inicial, 0 de blood, 0 TM iniciais                                    
+	STATE st = {20,20,20,20,1,0,0};			//coordenada 20,20, começa com 20HP atual, 20HP max e 1DMG inicial, 0 de blood, 0 TM iniciais                                    
 	int spdboss = 0;
 	int i = 0;                          // alterei o hp do player para 20 para ser mais facil definir o dano dos mobs. Se o player tivesse de hp 3, ia ter de por o dano dos mobs decimal                       // caso contrario o mobs matava o player em 3 ataques o que imensamente rapido oq ue significava alterar todas as funcoes de int para float e nao me apetecia.
     int s = 0;                          // (LOPES)                                  
@@ -375,7 +434,7 @@ int main()
      }      
 	 drawLight(mapData, &st);            //mas essa maneira e um bocado merda, estou a trabalhar numa forma
 	 drawplayer(&st,mapData);                     // de quando o jogador morrer aparece gameover  e 2s depois o jogo reinicia
-	 drawHP(&st);                         // com um novo mapa e tudo novo. (LOPES)
+	 drawHP(&st, boss);                         // com um novo mapa e tudo novo. (LOPES)
 	 drawBLOOD(&st);
 	 drawDMG(&st);
 	 if (st.playerTM >= 1)
@@ -383,7 +442,7 @@ int main()
 	 itemcollect(&st, mapData);
 	 update(&st,mapData);
 	 if(bosson == 0)mob_respawn(mapData, mobs, &st);
-	 ulti_clear(&st, mapData);
+	 ulti_clear(mapData);
 	 if (st.playerY >= COLS)
 	 	newroom(&st,mapData, mobs, boss);
 	 refresh();
@@ -392,7 +451,7 @@ int main()
 	 {
 		int start_row = LINES/2-5;
         int start_col = COLS/2-70;
-		if(boss[0].mobHP == 0) 
+		if(boss[0].mobHP <= 0) 
 		 {
            clear();
          mvprintw(start_row++, start_col,"        @@@@@@@@@@@@@@@@@@                   			 ");
@@ -403,11 +462,11 @@ int main()
          mvprintw(start_row++, start_col," @@@@@@@@@@@@@@@@\\      @@  @___@     ##     ## ##     ## ##    ## ##    ##    ##     ##  ##   ##        ##     ##      			 ");
          mvprintw(start_row++, start_col," @@@@@@@@@@@@@ @@@@@@@@@@  | \\@@@@@   ##     ## ##     ## ##       ##          ##     ##  ##   ##        ##     ##      			 ");
          mvprintw(start_row++, start_col," @@@@@@@@@@@@@ @@@@@@@@@\\__@_/@@@@@   ########  ##     ##  ######   ######     ##     ##  ##   ######    ##     ##                          ");
-         mvprintw(start_row++, start_col,"   @@@@@@@@@@@@@@@/,/,/./'/_|.\'\\,\\    ##     ## ##     ##       ##       ##    ##     ##  ##   ##       ##     ##                          ");
+         mvprintw(start_row++, start_col,"   @@@@@@@@@@@@@@@/,/,/./'/_|.\'\\,\\    ##     ## ##     ##       ##       ##    ##     ##  ##   ##        ##     ##                          ");
          mvprintw(start_row++, start_col,"     @@@@@@@@@@@@@|  | | | | | | |    ##     ## ##     ## ##    ## ##    ##    ##     ##  ##   ##        ##     ##                          ");
          mvprintw(start_row++, start_col,"                   \\_|_|_|_|_|_|_|_|  ########   #######   ######   ######     ########   ##   ########  ########                           ");
 		   refresh();
-		   sleep(50);
+		   sleep(4);
 		   reset(mapData, &st, mobs);
 		 }
 	 }
@@ -436,13 +495,15 @@ int main()
 	  s = 0;
 	 }
 	 
-	 if(spdboss == 800) boss_movement(mapData, boss, st.playerX, st.playerY), spdboss = 0;
+	 if(spdboss == 1000) boss_movement(mapData, boss, st.playerX, st.playerY), spdboss = 0;
 	
-	 if(i == 2800)  
+	 if(i == 3700)  
 	 {
 		if(bosson == 1) 
 		{
-          boss_attack(&st, boss), i = 0;	  
+          boss_clear(&st,mapData);
+		  boss_ulti(&st,boss,mapData);
+		  boss_attack(&st, boss), i = 0;	  
 		}
 		
 		

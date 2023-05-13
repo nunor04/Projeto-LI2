@@ -67,7 +67,7 @@ void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS], MOBS boss[
      int i, j;
 	if (r == 1)
 	{
-		for (i = st->playerX-1; i <= st->playerX+1; i++)		
+		for (i = st->playerX-2; i <= st->playerX+2; i++)		
 		{
 			for (j = st->playerY-2; j <= st->playerY+2; j++)		//a coluna do jogador e a coluna a sua direita
 			{
@@ -77,13 +77,13 @@ void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS], MOBS boss[
 					{
 						 boss[0].mobHP-= st->playerDMG;	//retira a hp
     	               	if(mapData[boss[0].mobX + 1][boss[0].mobY] == 0) 
-					   			mapData[boss[0].mobX + 1][boss[0].mobY] = 10;
+					   			mapData[boss[0].mobX + 1][boss[0].mobY] = 21;
 					   	if(mapData[boss[0].mobX - 1][boss[0].mobY] == 0)
-					   			mapData[boss[0].mobX - 1][boss[0].mobY] = 10;
+					   			mapData[boss[0].mobX - 1][boss[0].mobY] = 21;
 					   	if(mapData[boss[0].mobX][boss[0].mobY+1] == 0)
-					   			mapData[boss[0].mobX][boss[0].mobY+1] = 10;
+					   			mapData[boss[0].mobX][boss[0].mobY+1] = 21;
 					   	if(mapData[boss[0].mobX][boss[0].mobY-1] == 0 )
-					   			mapData[boss[0].mobX][boss[0].mobY-1] = 10;		//spawn do sangue ao matar mob
+					   			mapData[boss[0].mobX][boss[0].mobY-1] = 21;		//spawn do sangue ao matar mob
 					}
 				
 			}
@@ -100,13 +100,13 @@ void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS], MOBS boss[
 					{
 						 boss[0].mobHP-= st->playerDMG;	//retira a hp
     	               	if(mapData[boss[0].mobX + 1][boss[0].mobY] == 0) 
-					   			mapData[boss[0].mobX + 1][boss[0].mobY] = 10;
+					   			mapData[boss[0].mobX + 1][boss[0].mobY] = 21;
 					   	if(mapData[boss[0].mobX - 1][boss[0].mobY] == 0) 
-					   			mapData[boss[0].mobX - 1][boss[0].mobY] = 10;
+					   			mapData[boss[0].mobX - 1][boss[0].mobY] = 21;
 					   	if(mapData[boss[0].mobX][boss[0].mobY+1] == 0) 
-					   			mapData[boss[0].mobX][boss[0].mobY+1] = 10;
+					   			mapData[boss[0].mobX][boss[0].mobY+1] = 21;
 					   	if(mapData[boss[0].mobX][boss[0].mobY-1] == 0) 
-					   			mapData[boss[0].mobX][boss[0].mobY-1] = 10;		//spawn do sangue ao matar mob
+					   			mapData[boss[0].mobX][boss[0].mobY-1] = 21;		//spawn do sangue ao matar mob
 					}
 				
 			}
@@ -128,6 +128,9 @@ void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS])
     {
         mobs[i].mobHP -= st->playerDMG+6;		//dantes estava 5 fixo mas agora escala com os boosts que apanhas
     }
+    
+    pux = st->playerX;
+    puy = st->playerY; 
 
     for(int j = -5; j <= 5; j++)
     {
@@ -136,8 +139,8 @@ void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS])
         int distanciacentro= sqrt(j*j + k*k);
         if (distanciacentro <= 5)
         {
-          int x = st->playerX + j;
-          int y = st->playerY + k;
+          int x = pux + j;
+          int y = puy + k;
           if (x >= 0 && x < LINES && y >= 0 && y < COLS && mapData[x][y] == 0)
           {
               mapData[x][y] = 11;
@@ -149,12 +152,12 @@ void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS])
     {
         for (int j = st->playerY - 5; j <= st->playerY + 5; j++)
         {
-            attron(COLOR_PAIR(COLOR_CYAN));
+            attron(COLOR_PAIR(4));
 			mvaddch(i, j, '*');
-            attroff(COLOR_PAIR(COLOR_CYAN));
+            attroff(COLOR_PAIR(4));
 	    } 
     }
- 
+   
  }
 
  st->playerBLOOD = 0;
@@ -162,7 +165,7 @@ void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS])
 
 void drawplayer(STATE *st, int mapData[LINES][COLS])		//eu sei que o nome ta todo comido mas funcemina, e é mais simples
 {
-	attron(COLOR_PAIR(COLOR_YELLOW));
+	attron(COLOR_PAIR(7));
 	mvaddch(st->playerX, st->playerY, '@' | A_BOLD);
 	if (aon == 1)
 	{
@@ -190,17 +193,17 @@ void drawplayer(STATE *st, int mapData[LINES][COLS])		//eu sei que o nome ta tod
 				mvaddch(st->playerX, st->playerY-1, '\\' | A_BOLD);
 		}
 	}
-	attroff(COLOR_PAIR(COLOR_YELLOW));
+	attroff(COLOR_PAIR(7));
 }
 
-void ulti_clear(STATE *st, int mapData[LINES][COLS])
+void ulti_clear (int mapData[LINES][COLS])
 {
   if(uon == 0)
   {
 	
-	for (int i = st->playerX - 5; i <= st->playerX + 5; i++)
+	for (int i = pux - 5; i <= pux + 5; i++)
     {
-        for (int j = st->playerY - 5; j <= st->playerY + 5; j++)
+        for (int j = puy - 5; j <= puy + 5; j++)
         {
             if (mapData[i][j] == 11)
                 mapData[i][j] = 0;
@@ -281,7 +284,7 @@ void update(STATE *st, int mapData[LINES][COLS])
 			player_attack(st, mobs, mapData, boss);
 			break;
 		case 'x':
-            if(st->playerBLOOD == ultcost)
+            if(st->playerBLOOD >= ultcost)
 			{
             	player_ulti(st, mobs, mapData);
 				uon = 1;
@@ -291,7 +294,8 @@ void update(STATE *st, int mapData[LINES][COLS])
 		case 'c':			//c cura agora :)
             if (st->playerBLOOD >= healcost && st->playerHP < st->playerMAXHP-1)
 			{
-              	st->playerHP+=2;
+              	st->playerHP+=4;
+				if(st->playerHP > st->playerMAXHP) st->playerHP = st->playerMAXHP;
 				st->playerBLOOD-= healcost;
 			}
 			else if (st->playerBLOOD >= healcost && st->playerHP == st->playerMAXHP-1)

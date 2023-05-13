@@ -7,3 +7,5 @@ void boss_spawn();
 void boss_attack();
 void boss_movement();
 void boss_dead();
+void boss_ulti();
+void boss_clear();
