@@ -247,7 +247,7 @@ void drawBLOOD(STATE *st)
 void drawTM(STATE *st)
 {
 		int i;
-	mvaddstr(0, COLS-12, "HOLY TEXTS");	//usa os primeiros 3 indices
+	mvaddstr(0, COLS-12, "HOLY TEXTS");
 	for (i = 0; i < 3; i++)
 	{
 		attron(COLOR_PAIR(COLOR_BLACK));
@@ -265,7 +265,7 @@ void drawTM(STATE *st)
 
 void itemcollect(STATE *st, int mapData[LINES][COLS])		//só o player e que apanha itens, mesmo a espada estando por cima, ela n apanha
 {	
-	if(mapData[st->playerX][st->playerY] == 6 && st->playerMAXHP < 50)		//meti cap para a vida maxima que pode ter é de 35
+	if(mapData[st->playerX][st->playerY] == 6 && st->playerMAXHP < 35)		//meti cap para a vida maxima que pode ter é de 35
 	{																		//apesar que se for para o boss o mais rapido possivel so ira ter 29 no max
 		st->playerMAXHP+=3;
 		mapData[st->playerX][st->playerY] = 0;
@@ -285,7 +285,7 @@ void itemcollect(STATE *st, int mapData[LINES][COLS])		//só o player e que apan
 	    st->playerTM++;
 		mapData[st->playerX][st->playerY] = 0;
 	}
-	if(mapData[st->playerX][st->playerY] == 21)
+	if(mapData[st->playerX][st->playerY] == 21 && st->playerBLOOD < ultcost)	//aqui meti para nao exceder o limite de blood mas n sei se queres assim
     {
 	    st->playerBLOOD+=5;
 		if(st->playerBLOOD > 20) st->playerBLOOD= 20;
@@ -296,7 +296,13 @@ void itemcollect(STATE *st, int mapData[LINES][COLS])		//só o player e que apan
 
 void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40], MOBS boss[1])
 {			//se sair do mapa entao gera nova sala e volta tudo ao "inicio" dessa sala, mas com os buffs
-		int i, j;
+		int i, j,
+			s1, s2, s3, s4, s5;
+		s1 = st->playerHP;
+		s2 = st->playerMAXHP;
+		s3 = st->playerDMG;
+		s4 = st->playerBLOOD;
+		s5 = st->playerTM;
 	if(st->playerTM < 3 && bosson == 0)
 	{
 		mob_clear(mobs);
@@ -307,7 +313,7 @@ void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40], MOBS boss[1])
 
     	for (i = 0; i <= 1; i++)
     	{
-    	    for (j = 0; j <= 7; j++)
+    	    for (j = 0; j <= 10; j++)
     	    {
     	        mapData[20+i][j] = 0;     //porta por onde entra a esquerda
     	    }
@@ -324,6 +330,11 @@ void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40], MOBS boss[1])
 		st->playerY = 100;
 	    
 	}
+	st->playerHP = s1;
+	st->playerMAXHP = s2;
+	st->playerDMG = s3;
+	st->playerBLOOD = s4;
+	st->playerTM = s5;
 }
 
 void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs)

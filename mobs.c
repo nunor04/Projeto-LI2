@@ -37,12 +37,19 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
 
 void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st)
 {
-		int i;
+		int i, k;
 	for(i = 0; i < 40; i++)
 	{
 		if(mobs[i].mobHP <= 0)
 		{
-			mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			k = rand();
+			if (k % 10 == 0 && st->playerMAXHP < 35)
+				mapData[mobs[i].mobX][mobs[i].mobY] = 6;	//1/10 de spawnar heal
+			else if (k % 15 == 0 && st->playerDMG < 5)
+				mapData[mobs[i].mobX][mobs[i].mobY] = 7;	//1/15 de spawnar dmg
+			else
+				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
+			
 			if (bosson == 0)		//n queremos tar a spawnar bichanada na sala do boss
 			{
 				if(rand() % 3 == 0)

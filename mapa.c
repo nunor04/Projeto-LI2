@@ -34,7 +34,6 @@ void gerar(int mapData[LINES][COLS])
             xwall_size, ywall_size, start_row, start_col,
             i, j, k, l,
             count = 0,
-            hpboost = 3, dmgboost = 2,
             xh = 1, yh = 1,
             exit = 0;
     srand(time(NULL));  //inicializa o rand
@@ -76,34 +75,6 @@ void gerar(int mapData[LINES][COLS])
 
         count += xwall_size * ywall_size;
             //tira a area preenchida pelo "bloco" dos espaços possiveis para preencher
-    }
-
-    while(hpboost > 0)
-    {
-        while(mapData[xh][yh] == 1|| sqrt(pow(xh - playerX, 2) + pow(yh - playerY, 2)) < 20)     
-                //so para o loop quando as coordenadas escolhidas não estão dentro de uma parede
-        {
-            xh = rand() % LINES;    //vai randomizando as coordenadas do item até estarem acessíveis ao jogador
-            yh = rand() % COLS;
-        }
-
-        mapData[xh][yh] = 6;        //depois de ter coordenadas aceitaveis, altera o espaço para o item e recomeça para os outros itens
-        hpboost--;
-        xh = 0, yh = 0;
-    }
-
-    while(dmgboost > 0)
-    {
-        while(mapData[xh][yh] == 1 || mapData[xh][yh] == 6 || sqrt(pow(xh - playerX, 2) + pow(yh - playerY, 2)) < 20)     
-                //so para o loop quando as coordenadas escolhidas não estão dentro de uma parede
-        {
-            xh = rand() % LINES;    //vai randomizando as coordenadas do item até estarem acessíveis ao jogador
-            yh = rand() % COLS;
-        }
-
-        mapData[xh][yh] = 7;        //depois de ter coordenadas aceitaveis, altera o espaço para o item e recomeça para os outros itens
-        dmgboost--;
-        xh = 0, yh = 0;
     }
 
     //aqui vou fazer a saida do mapa para outras "salas" que depois precisará de ser detetado na main para gerar o mapa de novo
