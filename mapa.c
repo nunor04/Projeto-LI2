@@ -85,7 +85,7 @@ void gerar(int mapData[LINES][COLS])
     
     for (k = 0; k <= 1; k++)    //exit+k
     {
-        for (l = COLS; l >= COLS -10; l--)    //faz uma saida de 2 casas que limpa espaço 5 casas a frente para garantir que dá para chegar lá
+        for (l = COLS; l >= COLS -15; l--)    //faz uma saida de 2 casas que limpa espaço 5 casas a frente para garantir que dá para chegar lá
         {
             mapData[exit+k][l] = 0;     //parede da direita
         }

@@ -9,21 +9,21 @@
 #include "types.h"
 #include "variables.h"
 
-void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
+void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40], int pfloor)
 {
 	for (int i = 0; i < 40; i++) {
 	   int rnd = rand() % 6;
 	   if(rnd == 0 || rnd == 1 || rnd == 2 || rnd == 3 || rnd == 4)
 	   { 
 		mobs[i].mobtype = 'e';
-		mobs[i].mobDMG = 1;
-        mobs[i].mobHP = 3;                                       //Esta funcao spawna os mobs random
+		mobs[i].mobDMG = 1 + pfloor;
+        mobs[i].mobHP = 3 + pfloor;                                       //Esta funcao spawna os mobs random
 	   }
 	   else if(rnd  == 5) 
 	   {
 		mobs[i].mobtype = 'c';
-		mobs[i].mobDMG = 1;   // 25% de chance de spawnar uma cobarde
-        mobs[i].mobHP = 1;
+		mobs[i].mobDMG = 1 + pfloor;   // 25% de chance de spawnar uma cobarde
+        mobs[i].mobHP = 1 + pfloor;
 	   }
 		do {
 			mobs[i].mobX = rand() % LINES;                       //ja meti para ficar longe do spawn, ta mesmo aqui abaixo (20,20) sendo o spawn do player (joao)         
@@ -35,7 +35,7 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40])
 	}
 }
 
-void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st)
+void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st, int pfloor)
 {
 		int i, k;
 	for(i = 0; i < 40; i++)
@@ -54,14 +54,14 @@ void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st)
 			{
 				if(rand() % 3 == 0)
 				{	mobs[i].mobtype = 'e';
-					mobs[i].mobDMG = 1;
-        			mobs[i].mobHP = 3;  	//cria os status para novo mob
+					mobs[i].mobDMG = 1 + pfloor;
+        			mobs[i].mobHP = 3 + pfloor;  	//cria os status para novo mob
 				}
 				else if(rand() % 3 == 1)
 				{
 					mobs[i].mobtype = 'c';
-					mobs[i].mobDMG = 1;
-        			mobs[i].mobHP = 1; 
+					mobs[i].mobDMG = 1 + pfloor;
+        			mobs[i].mobHP = 1 + pfloor; 
 				}
 				do 
 				{

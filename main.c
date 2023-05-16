@@ -25,6 +25,8 @@ int ultcost = 18;
 int healcost = 6;
 int bosson = 0;	//verifica se ele esta na bossroom ou não
 int sightrange = 400; 	//distancia que o player consegue ver
+
+int piso = 0; 	//ve o piso que o player esta para aumentar dificuldade
 MOBS boss[1];
 MOBS mobs[40];
 
@@ -287,7 +289,10 @@ void itemcollect(STATE *st, int mapData[LINES][COLS])		//só o player e que apan
 	}
 	if(mapData[st->playerX][st->playerY] == 21 && st->playerBLOOD < ultcost)	//aqui meti para nao exceder o limite de blood mas n sei se queres assim
     {
-	    st->playerBLOOD+=5;
+	    if (st->playerBLOOD +5 > ultcost)
+			st->playerBLOOD = ultcost;
+		else
+			st->playerBLOOD+=5;
 		if(st->playerBLOOD > 20) st->playerBLOOD= 20;
 		mapData[st->playerX][st->playerY] = 0;
 	}
@@ -307,13 +312,13 @@ void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40], MOBS boss[1])
 	{
 		mob_clear(mobs);
 		gerar(mapData);
-		mob_spawn(mapData, mobs);
+		mob_spawn(mapData, mobs, piso);
 		st->playerX = 20;
 		st->playerY = 0;
 
     	for (i = 0; i <= 1; i++)
     	{
-    	    for (j = 0; j <= 10; j++)
+    	    for (j = 0; j <= 15; j++)
     	    {
     	        mapData[20+i][j] = 0;     //porta por onde entra a esquerda
     	    }
@@ -335,6 +340,8 @@ void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40], MOBS boss[1])
 	st->playerDMG = s3;
 	st->playerBLOOD = s4;
 	st->playerTM = s5;
+
+	piso++;		//aumenta o piso do player, logo aumenta a dificuldade
 }
 
 void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs)
@@ -343,8 +350,9 @@ void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs)
  bosson = 0;
  gerar(mapData);
  mob_clear(mobs);
- mob_spawn(mapData, mobs);
- *st = (STATE){20,20,20,20,1,0,0};                                                    
+ mob_spawn(mapData, mobs, piso);
+ *st = (STATE){20,20,20,20,1,0,0};  
+ piso = 0;                                                  
 }
 
 int main()
@@ -380,7 +388,7 @@ int main()
 
 	
 	gerar(mapData);
-    mob_spawn(mapData, mobs);
+    mob_spawn(mapData, mobs, piso);
 			//meti a coordenada y a 200 e os tm a 3 para testar a boss room, depois coloca-se a 20 e a 0 respetivamente, 50 dmg e 18 blood
 	STATE st = {20,20,20,20,1,0,0};			//coordenada 20,20, começa com 20HP atual, 20HP max e 1DMG inicial, 0 de blood, 0 TM iniciais                                    
 	int spdboss = 0;
@@ -452,7 +460,8 @@ int main()
 	 	drawTM(&st);
 	 itemcollect(&st, mapData);
 	 update(&st,mapData);
-	 if(bosson == 0)mob_respawn(mapData, mobs, &st);
+	 if(bosson == 0)
+	 	mob_respawn(mapData, mobs, &st, piso);
 	 ulti_clear(mapData);
 	 if (st.playerY >= COLS)
 	 	newroom(&st,mapData, mobs, boss);
@@ -534,18 +543,4 @@ int main()
 	}
 
 	return 0;
-	
 }
-
-/* Coisas a fazer:
-
- Se houver tempo:
-
- Acrescentar novos mobs
-e tc
-
-q
-
-
-
-*/
