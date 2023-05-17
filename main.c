@@ -182,7 +182,7 @@ void drawHP(STATE *st, MOBS boss[1])
 	}
 	for (i = 0; i < st->playerHP; i++)
 	{
-		if(i <= 20)	
+		if(i <= 10)	
 		{
 			attron(COLOR_PAIR(3));
 			mvaddch(1, 3+i, '|' | A_BOLD);
@@ -268,14 +268,14 @@ void drawTM(STATE *st)
 
 void itemcollect(STATE *st, int mapData[LINES][COLS])		//só o player e que apanha itens, mesmo a espada estando por cima, ela n apanha
 {	
-	if(mapData[st->playerX][st->playerY] == 6 && st->playerMAXHP < 35)		//meti cap para a vida maxima que pode ter é de 35
+	if(mapData[st->playerX][st->playerY] == 6 && st->playerMAXHP < 34 + 6*ngp)		//meti cap para a vida maxima que pode ter é de 34, mas fica a 43 em ng+
 	{																		//apesar que se for para o boss o mais rapido possivel so ira ter 29 no max
 		st->playerMAXHP+=3;
 		mapData[st->playerX][st->playerY] = 0;
 	}
-	if(mapData[st->playerX][st->playerY] == 7 && st->playerDMG < 5)		//meti tambem cap para o dano maximo que o jogador pode dar de 5
+	if(mapData[st->playerX][st->playerY] == 7 && st->playerDMG < 5 + ngp)		//meti tambem cap para o dano maximo que o jogador pode dar de 5, mas ng+ fica a 6
 	{																		
-		st->playerDMG+=2;
+		st->playerDMG++;
 		mapData[st->playerX][st->playerY] = 0;
 	}
     if(mapData[st->playerX][st->playerY] == 10 && st->playerBLOOD < ultcost)
@@ -351,12 +351,12 @@ void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs)
  bosson = 0;
  int s1 = st->playerMAXHP;
  int s2 = st->playerDMG;
- gerar(mapData);
  mob_clear(mobs);
+ gerar(mapData);
  if (ngp == 0)
  	piso = 0;
  else
-	piso = 5;
+	piso += 5;
  mob_spawn(mapData, mobs, piso);
  if (ngp == 0)
  	*st = (STATE){20,20,20,20,1,0,0};
@@ -469,9 +469,9 @@ int main()
 	   }  
     
      }      
-	 drawLight(mapData, &st);            //mas essa maneira e um bocado merda, estou a trabalhar numa forma
-	 drawplayer(&st,mapData);                     // de quando o jogador morrer aparece gameover  e 2s depois o jogo reinicia
-	 drawHP(&st, boss);                         // com um novo mapa e tudo novo. (LOPES)
+	 drawLight(mapData, &st);
+	 drawplayer(&st,mapData);
+	 drawHP(&st, boss);
 	 drawBLOOD(&st);
 	 drawDMG(&st);
 	 if (st.playerTM >= 1)
@@ -479,7 +479,7 @@ int main()
 	 itemcollect(&st, mapData);
 	 update(&st,mapData);
 	 if(bosson == 0)
-	 	mob_respawn(mapData, mobs, &st, piso);
+	 	mob_respawn(mapData, mobs, &st, piso, ngp);
 	 ulti_clear(mapData);
 	 if (st.playerY >= COLS)
 	 	newroom(&st,mapData, mobs, boss);

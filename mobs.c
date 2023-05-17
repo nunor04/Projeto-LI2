@@ -35,7 +35,7 @@ void mob_spawn(int mapData[LINES][COLS], MOBS mobs[40], int pfloor)
 	}
 }
 
-void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st, int pfloor)
+void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st, int pfloor, int ngp)
 {
 		int i, k;
 	for(i = 0; i < 40; i++)
@@ -43,9 +43,9 @@ void mob_respawn(int mapData[LINES][COLS], MOBS mobs[40], STATE* st, int pfloor)
 		if(mobs[i].mobHP <= 0)
 		{
 			k = rand();
-			if (k % 10 == 0 && st->playerMAXHP < 35)
+			if ((k % 15 == 1 || k % 15 == 2) && st->playerMAXHP < 34 + 6*ngp)
 				mapData[mobs[i].mobX][mobs[i].mobY] = 6;	//1/10 de spawnar heal
-			else if (k % 15 == 0 && st->playerDMG < 5)
+			else if (k % 15 == 0 && st->playerDMG < 5 + ngp)
 				mapData[mobs[i].mobX][mobs[i].mobY] = 7;	//1/15 de spawnar dmg
 			else
 				mapData[mobs[i].mobX][mobs[i].mobY] = 0;
