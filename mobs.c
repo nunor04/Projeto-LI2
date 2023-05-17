@@ -447,11 +447,20 @@ void mob_attack(STATE *st, MOBS mobs[40])
   
 }
 
-void boss_spawn(int mapData[LINES][COLS], MOBS boss[1])		//guardar a boss estelita como inimigo nr 41 que normalmente n leva spawn nem respawn
+void boss_spawn(int mapData[LINES][COLS], MOBS boss[1], int ngp)		//guardar a boss estelita como inimigo nr 41 que normalmente n leva spawn nem respawn
 {
-	boss[0].mobtype = 'E';
-	boss[0].mobDMG = 3;
-	boss[0].mobHP = 150;		//epah talvez um pouco dificil, n sei
+	if (ngp == 0)
+	{
+		boss[0].mobtype = 'E';
+		boss[0].mobDMG = 3;
+		boss[0].mobHP = 150;		//epah talvez um pouco dificil, n sei
+	}
+	else
+	{
+		boss[0].mobtype = 'E';
+		boss[0].mobDMG = 6;
+		boss[0].mobHP = 250;
+	}
 	do
 	{
 		boss[0].mobX = rand() % LINES;

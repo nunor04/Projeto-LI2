@@ -27,6 +27,7 @@ int bosson = 0;	//verifica se ele esta na bossroom ou não
 int sightrange = 400; 	//distancia que o player consegue ver
 
 int piso = 0; 	//ve o piso que o player esta para aumentar dificuldade
+int ngp = 0; 	//new game plus, depois de derrotar o boss ele recomeça mas com buffs e com possibilidade de ficar mais op
 MOBS boss[1];
 MOBS mobs[40];
 
@@ -330,7 +331,7 @@ void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40], MOBS boss[1])
 		sightrange = 6400;
 		mob_clear(mobs);
 		bossroom(mapData);
-		boss_spawn(mapData, boss);
+		boss_spawn(mapData, boss, ngp);
 		st->playerX = 30;
 		st->playerY = 100;
 	    
@@ -348,11 +349,27 @@ void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs)
 {
  sightrange = 400;
  bosson = 0;
+ int s1 = st->playerMAXHP;
+ int s2 = st->playerDMG;
  gerar(mapData);
  mob_clear(mobs);
+ if (ngp == 0)
+ 	piso = 0;
+ else
+	piso = 5;
  mob_spawn(mapData, mobs, piso);
- *st = (STATE){20,20,20,20,1,0,0};  
- piso = 0;                                                  
+ if (ngp == 0)
+ 	*st = (STATE){20,20,20,20,1,0,0};
+ else
+ {
+		st->playerMAXHP = s1;
+		st->playerHP = s1;
+		st->playerDMG = s2;
+		st->playerX = 20;
+		st->playerY = 20;
+		st->playerBLOOD = 0;
+		st->playerTM = 0;
+ }                                              
 }
 
 int main()
@@ -389,8 +406,8 @@ int main()
 	
 	gerar(mapData);
     mob_spawn(mapData, mobs, piso);
-			//meti a coordenada y a 200 e os tm a 3 para testar a boss room, depois coloca-se a 20 e a 0 respetivamente, 50 dmg e 18 blood
-	STATE st = {20,20,20,20,1,0,0};			//coordenada 20,20, começa com 20HP atual, 20HP max e 1DMG inicial, 0 de blood, 0 TM iniciais                                    
+
+	STATE st = {20,20,10,10,1,0,0};			//coordenada 20,20, começa com 10HP atual, 10HP max e 1DMG inicial, 0 de blood, 0 TM iniciais                                    
 	int spdboss = 0;
 	int i = 0;                          // alterei o hp do player para 20 para ser mais facil definir o dano dos mobs. Se o player tivesse de hp 3, ia ter de por o dano dos mobs decimal                       // caso contrario o mobs matava o player em 3 ataques o que imensamente rapido oq ue significava alterar todas as funcoes de int para float e nao me apetecia.
     int s = 0;                          // (LOPES)                                  
@@ -405,6 +422,7 @@ int main()
        clear();
 	   int start_row = LINES/2-15;
        int start_col = COLS/2-40;
+	   ngp = 0;
 	   mvprintw(start_row++, start_col,"                               .,od88888888888bo,.                               ");
        mvprintw(start_row++, start_col,"                           .d88888888888888888888888b.                           ");
        mvprintw(start_row++, start_col,"                         .d88888888888888888888888888888b.                       ");  
@@ -487,6 +505,7 @@ int main()
          mvprintw(start_row++, start_col,"                   \\_|_|_|_|_|_|_|_|  ########   #######   ######   ######     ########   ##   ########  ########                           ");
 		   refresh();
 		   sleep(4);
+		   ngp = 1;		//entra no modo newgame+
 		   reset(mapData, &st, mobs);
 		 }
 	 }

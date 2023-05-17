@@ -9,7 +9,21 @@
 #include "types.h"
 #include "variables.h"
 
-void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS], MOBS boss[0])		//->SPACEBAR atk
+
+void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
+{
+	if(mapData[st->playerX + dx][st->playerY + dy] == 1 || mapData[st->playerX + dx][st->playerY + dy] == 8 ||mapData[st->playerX + dx][st->playerY + dy] == 8)
+		;
+
+    else
+	{
+		st->playerX += dx;
+        st->playerY += dy;
+    }
+}
+
+
+void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS], MOBS boss[])		//->SPACEBAR atk
 {
   if(bosson == 0)
   {	 int i, j, k;
@@ -116,7 +130,7 @@ void player_attack(STATE *st, MOBS mobs[40],int mapData[LINES][COLS], MOBS boss[
   }
 }
 
-void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS])
+void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS], MOBS boss[])
 { 
   for(int i = 0; i < 40; i++)
   {
@@ -124,9 +138,18 @@ void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS])
     int dy = mobs[i].mobY - st->playerY;
     double distancia = sqrt(dx * dx + dy * dy);
 
+	int bdx = boss[0].mobX - st->playerX;
+    int bdy = boss[0].mobY - st->playerY;
+    double bdistancia = sqrt(bdx * bdx + bdy * bdy);
+
     if(distancia <= 6)
     {
         mobs[i].mobHP -= st->playerDMG+6;		//dantes estava 5 fixo mas agora escala com os boosts que apanhas
+    }
+
+	if(bdistancia <= 6)
+    {
+        boss[0].mobHP -= st->playerDMG+6;		//dantes estava 5 fixo mas agora escala com os boosts que apanhas
     }
     
     pux = st->playerX;
@@ -286,7 +309,7 @@ void update(STATE *st, int mapData[LINES][COLS])
 		case 'x':
             if(st->playerBLOOD >= ultcost)
 			{
-            	player_ulti(st, mobs, mapData);
+            	player_ulti(st, mobs, mapData, boss);
 				uon = 1;
 				atime2 = 0;
 			}
@@ -310,16 +333,4 @@ void update(STATE *st, int mapData[LINES][COLS])
 			break;
 	}
   
-}
-
-void do_movement_action(STATE *st, int dx, int dy, int mapData[LINES][COLS])
-{
-	if(mapData[st->playerX + dx][st->playerY + dy] == 1 || mapData[st->playerX + dx][st->playerY + dy] == 8 ||mapData[st->playerX + dx][st->playerY + dy] == 8)
-		;
-
-    else
-	{
-		st->playerX += dx;
-        st->playerY += dy;
-    }
 }
