@@ -452,13 +452,13 @@ void boss_spawn(int mapData[LINES][COLS], MOBS boss[1], int ngp)		//guardar a bo
 	if (ngp == 0)
 	{
 		boss[0].mobtype = 'E';
-		boss[0].mobDMG = 3;
+		boss[0].mobDMG = 5;
 		boss[0].mobHP = 150;		//epah talvez um pouco dificil, n sei
 	}
 	else
 	{
 		boss[0].mobtype = 'E';
-		boss[0].mobDMG = 6;
+		boss[0].mobDMG = 10;
 		boss[0].mobHP = 250;
 	}
 	do

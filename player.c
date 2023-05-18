@@ -138,18 +138,9 @@ void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS], MOBS boss[]
     int dy = mobs[i].mobY - st->playerY;
     double distancia = sqrt(dx * dx + dy * dy);
 
-	int bdx = boss[0].mobX - st->playerX;
-    int bdy = boss[0].mobY - st->playerY;
-    double bdistancia = sqrt(bdx * bdx + bdy * bdy);
-
     if(distancia <= 6)
     {
         mobs[i].mobHP -= st->playerDMG+6;		//dantes estava 5 fixo mas agora escala com os boosts que apanhas
-    }
-
-	if(bdistancia <= 6)
-    {
-        boss[0].mobHP -= st->playerDMG+6;		//dantes estava 5 fixo mas agora escala com os boosts que apanhas
     }
     
     pux = st->playerX;
@@ -182,6 +173,15 @@ void player_ulti(STATE *st, MOBS mobs[40], int mapData[LINES][COLS], MOBS boss[]
     }
    
  }
+ 
+	int bdx = boss[0].mobX - st->playerX;
+    int bdy = boss[0].mobY - st->playerY;
+    double bdistancia = sqrt(bdx * bdx + bdy * bdy);
+	
+ if(bdistancia <= 6)
+    {
+        boss[0].mobHP-= st->playerDMG+6;		//dantes estava 5 fixo mas agora escala com os boosts que apanhas
+    }
 
  st->playerBLOOD = 0;
 }

@@ -198,7 +198,7 @@ void drawHP(STATE *st, MOBS boss[1])
 	}  
    if(bosson == 1)
    {
-	 mvaddstr(3, start, "BOSS HP");
+	 mvaddstr(3, start, "'ESTELITA'");
 	 
 	 for(int j = 0; j < 150; j++)
 	  {
@@ -332,8 +332,8 @@ void newroom(STATE *st,int mapData[LINES][COLS], MOBS mobs[40], MOBS boss[1])
 		mob_clear(mobs);
 		bossroom(mapData);
 		boss_spawn(mapData, boss, ngp);
-		st->playerX = 30;
-		st->playerY = 100;
+		st->playerX = LINES/2;
+		st->playerY = COLS/2;
 	    
 	}
 	st->playerHP = s1;
@@ -359,7 +359,7 @@ void reset(int mapData[LINES][COLS], STATE* st, MOBS* mobs)
 	piso += 5;
  mob_spawn(mapData, mobs, piso);
  if (ngp == 0)
- 	*st = (STATE){20,20,20,20,1,0,0};
+ 	*st = (STATE){20,20,10,10,1,0,0};
  else
  {
 		st->playerMAXHP = s1;
@@ -407,7 +407,7 @@ int main()
 	gerar(mapData);
     mob_spawn(mapData, mobs, piso);
 
-	STATE st = {20,20,10,10,1,0,0};			//coordenada 20,20, começa com 10HP atual, 10HP max e 1DMG inicial, 0 de blood, 0 TM iniciais                                    
+	STATE st = {20,200,10,10,1,0,0};			//coordenada 20,20, começa com 10HP atual, 10HP max e 1DMG inicial, 0 de blood, 0 TM iniciais                                    
 	int spdboss = 0;
 	int i = 0;                          // alterei o hp do player para 20 para ser mais facil definir o dano dos mobs. Se o player tivesse de hp 3, ia ter de por o dano dos mobs decimal                       // caso contrario o mobs matava o player em 3 ataques o que imensamente rapido oq ue significava alterar todas as funcoes de int para float e nao me apetecia.
     int s = 0;                          // (LOPES)                                  
@@ -491,6 +491,7 @@ int main()
         int start_col = COLS/2-70;
 		if(boss[0].mobHP <= 0) 
 		 {
+		   mapData[boss[0].mobX][boss[0].mobY] = 0;
            clear();
          mvprintw(start_row++, start_col,"        @@@@@@@@@@@@@@@@@@                   			 ");
          mvprintw(start_row++, start_col,"      @@@@@@@@@@@@@@@@@@@@@@@               			 ");
